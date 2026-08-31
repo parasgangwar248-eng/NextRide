@@ -1,8 +1,8 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Fallback keys or environment variables
-const envUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const envAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const envUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ckgbpkgitvjijcuruill.supabase.co';
+const envAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_GIfgMIjAfZHPHN8WmW0UFg_aE7dWIaB';
 
 // Local storage override keys
 const STORAGE_URL_KEY = 'nextride_supabase_url';
