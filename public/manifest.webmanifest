@@ -1,0 +1,18 @@
+{
+  "name": "NextRide - Rural Shared Mobility",
+  "short_name": "NextRide",
+  "description": "Your next ride, on time, every time. Find and share rides in rural & semi-urban routes.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.jpg",
+      "sizes": "192x192 512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
