@@ -89,10 +89,19 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.routes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.profiles;
 CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Routes are viewable by everyone" ON public.routes;
 CREATE POLICY "Routes are viewable by everyone" ON public.routes FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Users can view bookings" ON public.bookings;
 CREATE POLICY "Users can view bookings" ON public.bookings FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Users can insert bookings" ON public.bookings;
 CREATE POLICY "Users can insert bookings" ON public.bookings FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Drivers can insert routes" ON public.routes;
 CREATE POLICY "Drivers can insert routes" ON public.routes FOR INSERT WITH CHECK (true);`;
 
   const copySqlToClipboard = () => {

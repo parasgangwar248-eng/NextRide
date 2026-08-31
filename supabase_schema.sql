@@ -4,8 +4,9 @@
 -- "Your next ride, on time, every time"
 -- =======================================================================
 
--- 1. Enable UUID Extension
+-- 1. Enable UUID Extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- 2. User Profiles Table (Linked to Supabase Auth)
 CREATE TABLE IF NOT EXISTS public.profiles (
@@ -23,7 +24,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 
 -- 3. Driver Vehicles Table
 CREATE TABLE IF NOT EXISTS public.vehicles (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     driver_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     vehicle_type TEXT NOT NULL, -- 'Jeep / Cruiser', 'Tata Magic / Van', 'Auto / E-Rickshaw', 'Mini Bus', 'Bike / Scooter', 'Car'
     model_name TEXT NOT NULL,   -- e.g. "Mahindra Bolero", "Tata Magic Gold", "Bajaj Maxima"
@@ -37,15 +38,15 @@ CREATE TABLE IF NOT EXISTS public.vehicles (
 
 -- 4. Shared Routes & Rides Table
 CREATE TABLE IF NOT EXISTS public.routes (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     driver_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     vehicle_id UUID REFERENCES public.vehicles(id) ON DELETE SET NULL,
     origin_name TEXT NOT NULL,        -- e.g. "Rampur Village"
     destination_name TEXT NOT NULL,   -- e.g. "District Hub / Market"
     intermediate_stops TEXT[] DEFAULT '{}', -- e.g. ARRAY['Kisan Mandi', 'Old Toll Gate', 'Tehsil Chowk']
-    departure_time TEXT NOT NULL,     -- e.g. "08:30 AM" or ISO timestamp
+    departure_time TEXT NOT NULL,     -- e.g. "08:30 AM"
     departure_date DATE DEFAULT CURRENT_DATE,
-    frequency TEXT DEFAULT 'Daily Morning & Evening', -- 'Daily', 'Weekdays', 'One-time'
+    frequency TEXT DEFAULT 'Daily Morning & Evening',
     price_per_seat NUMERIC(10, 2) NOT NULL DEFAULT 40.00,
     available_seats INTEGER NOT NULL DEFAULT 6,
     total_seats INTEGER NOT NULL DEFAULT 6,
@@ -57,7 +58,7 @@ CREATE TABLE IF NOT EXISTS public.routes (
 
 -- 5. Bookings / Seat Reservations Table
 CREATE TABLE IF NOT EXISTS public.bookings (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     route_id UUID NOT NULL REFERENCES public.routes(id) ON DELETE CASCADE,
     traveller_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     seats_booked INTEGER NOT NULL DEFAULT 1,
@@ -77,54 +78,68 @@ ALTER TABLE public.vehicles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.routes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
 
--- 7. RLS Policies
--- Profiles: Anyone can view driver profiles; Users can edit their own profile
+-- 7. Idempotent RLS Policies (Clean drop and re-create)
+
+-- Profiles Policies
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.profiles;
 CREATE POLICY "Public profiles are viewable by everyone" 
 ON public.profiles FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
 CREATE POLICY "Users can insert their own profile" 
 ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile" 
 ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
--- Vehicles: Viewable by all; Modified only by the driver
+-- Vehicles Policies
+DROP POLICY IF EXISTS "Vehicles are viewable by everyone" ON public.vehicles;
 CREATE POLICY "Vehicles are viewable by everyone" 
 ON public.vehicles FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Drivers can insert their vehicles" ON public.vehicles;
 CREATE POLICY "Drivers can insert their vehicles" 
 ON public.vehicles FOR INSERT WITH CHECK (auth.uid() = driver_id);
 
+DROP POLICY IF EXISTS "Drivers can update their vehicles" ON public.vehicles;
 CREATE POLICY "Drivers can update their vehicles" 
 ON public.vehicles FOR UPDATE USING (auth.uid() = driver_id);
 
--- Routes: Active routes are viewable by everyone
+-- Routes Policies
+DROP POLICY IF EXISTS "Routes are viewable by everyone" ON public.routes;
 CREATE POLICY "Routes are viewable by everyone" 
 ON public.routes FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Drivers can insert their routes" ON public.routes;
 CREATE POLICY "Drivers can insert their routes" 
 ON public.routes FOR INSERT WITH CHECK (auth.uid() = driver_id);
 
+DROP POLICY IF EXISTS "Drivers can update their own routes" ON public.routes;
 CREATE POLICY "Drivers can update their own routes" 
 ON public.routes FOR UPDATE USING (auth.uid() = driver_id);
 
+DROP POLICY IF EXISTS "Drivers can delete their own routes" ON public.routes;
 CREATE POLICY "Drivers can delete their own routes" 
 ON public.routes FOR DELETE USING (auth.uid() = driver_id);
 
--- Bookings: Viewable by the traveller who booked OR the driver of the route
+-- Bookings Policies
+DROP POLICY IF EXISTS "Users can view their own bookings" ON public.bookings;
 CREATE POLICY "Users can view their own bookings" 
 ON public.bookings FOR SELECT USING (
     auth.uid() = traveller_id OR 
-    auth.uid() IN (SELECT driver_id FROM public.routes WHERE id = bookings.route_id)
+    auth.uid() IN (SELECT r.driver_id FROM public.routes r WHERE r.id = route_id)
 );
 
+DROP POLICY IF EXISTS "Travellers can insert bookings" ON public.bookings;
 CREATE POLICY "Travellers can insert bookings" 
 ON public.bookings FOR INSERT WITH CHECK (auth.uid() = traveller_id);
 
+DROP POLICY IF EXISTS "Travellers & Drivers can update booking status" ON public.bookings;
 CREATE POLICY "Travellers & Drivers can update booking status" 
 ON public.bookings FOR UPDATE USING (
     auth.uid() = traveller_id OR 
-    auth.uid() IN (SELECT driver_id FROM public.routes WHERE id = bookings.route_id)
+    auth.uid() IN (SELECT r.driver_id FROM public.routes r WHERE r.id = route_id)
 );
 
 -- 8. Auto-create Profile Trigger on User Signup
@@ -138,12 +153,12 @@ BEGIN
     COALESCE(new.raw_user_meta_data->>'role', 'traveller'),
     COALESCE(new.raw_user_meta_data->>'phone', ''),
     COALESCE(new.raw_user_meta_data->>'village_town', '')
-  );
+  )
+  ON CONFLICT (id) DO NOTHING;
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Trigger execution
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
