@@ -97,11 +97,8 @@ export const InstallPwaButton: React.FC<{ variant?: 'navbar' | 'banner' | 'card'
               <Smartphone className="w-6 h-6 text-blue-200 animate-bounce" />
             </div>
             <div>
-              <h4 className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+              <h4 className="font-bold text-sm sm:text-base text-white">
                 Install NextRide on your Phone
-                <span className="text-[10px] uppercase font-extrabold bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full">
-                  No Chrome needed
-                </span>
               </h4>
               <p className="text-xs text-blue-100/90 mt-0.5">
                 Fast 1-tap access from your Home Screen with offline route viewing and instant booking updates.
