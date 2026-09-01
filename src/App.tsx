@@ -1,20 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { UserProfile, UserRole, SharedRoute, Booking } from './lib/types';
-import { INITIAL_ROUTES, DEMO_USERS } from './lib/mockData';
-import { getSupabaseClient, getSavedSupabaseConfig } from './lib/supabaseClient';
+import { UserProfile, UserRole, SharedRoute, Booking, Language } from './lib/types';
+import { INITIAL_ROUTES } from './lib/mockData';
+import { getSupabaseClient } from './lib/supabaseClient';
 import { Navbar } from './components/Navbar';
 import { TravellerView } from './components/TravellerView';
 import { DriverView } from './components/DriverView';
 import { AuthModal } from './components/AuthModal';
 import { BookingModal } from './components/BookingModal';
+import { SafetyModal } from './components/SafetyModal';
 import { SupabaseGuideModal } from './components/SupabaseGuideModal';
 import { Footer } from './components/Footer';
+import { Zap, Radio, Ticket, Car, ShieldCheck } from 'lucide-react';
+import { translations } from './lib/translations';
 
-const STORAGE_ROUTES_KEY = 'nextride_routes_v1';
-const STORAGE_BOOKINGS_KEY = 'nextride_bookings_v1';
-const STORAGE_USER_KEY = 'nextride_user_v1';
+const STORAGE_ROUTES_KEY = 'nextride_routes_v2';
+const STORAGE_BOOKINGS_KEY = 'nextride_bookings_v2';
+const STORAGE_USER_KEY = 'nextride_user_v2';
+const STORAGE_LANG_KEY = 'nextride_lang_v2';
 
 export function App() {
+  // Language (English or Hindi)
+  const [lang, setLang] = useState<Language>(() => {
+    const saved = localStorage.getItem(STORAGE_LANG_KEY);
+    return (saved as Language) || 'en';
+  });
+
+  const toggleLang = () => {
+    const nextLang = lang === 'en' ? 'hi' : 'en';
+    setLang(nextLang);
+    localStorage.setItem(STORAGE_LANG_KEY, nextLang);
+  };
+
+  const t = translations[lang];
+
   // Authentication & Role
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
     const saved = localStorage.getItem(STORAGE_USER_KEY);
@@ -26,9 +44,9 @@ export function App() {
   });
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'explore' | 'bookings' | 'driver-routes' | 'driver-post'>('explore');
+  const [activeTab, setActiveTab] = useState<'explore' | 'bookings' | 'live-map' | 'driver-routes' | 'driver-post'>('explore');
 
-  // Shared Routes state
+  // Shared Routes state (E-Rickshaws & Autos)
   const [routes, setRoutes] = useState<SharedRoute[]>(() => {
     const saved = localStorage.getItem(STORAGE_ROUTES_KEY);
     return saved ? JSON.parse(saved) : INITIAL_ROUTES;
@@ -40,28 +58,31 @@ export function App() {
     return saved ? JSON.parse(saved) : [
       {
         id: 'NR-849201',
-        route_id: 'route-101',
+        otp: '4891',
+        route_id: 'route-e101',
         traveller_id: 'traveller-1',
         passenger_name: 'Anita Sharma',
         passenger_phone: '+91 97112 33445',
         pickup_point: 'Rampur Village Chowk',
-        drop_point: 'District Main Mandi & Hospital',
+        drop_point: 'Krishi Mandi & Tehsil Hub',
         seats_booked: 2,
-        total_fare: 80,
+        booking_type: 'shared_seat',
+        total_fare: 30,
         status: 'confirmed',
         payment_status: 'cash_on_ride',
         created_at: new Date().toISOString(),
-        route: INITIAL_ROUTES[0]
+        route: INITIAL_ROUTES[0],
       }
     ];
   });
 
   // Modals
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isSafetyOpen, setIsSafetyOpen] = useState(false);
   const [isSupabaseGuideOpen, setIsSupabaseGuideOpen] = useState(false);
   const [selectedRouteForBooking, setSelectedRouteForBooking] = useState<SharedRoute | null>(null);
 
-  // Sync with LocalStorage
+  // Sync LocalStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_ROUTES_KEY, JSON.stringify(routes));
   }, [routes]);
@@ -84,7 +105,6 @@ export function App() {
     if (!supabase) return;
 
     try {
-      // Check auth session
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         const { data: profile } = await supabase
@@ -102,12 +122,11 @@ export function App() {
             role: profile.role || 'traveller',
             village_town: profile.village_town || '',
             rating: profile.rating || 4.9,
-            total_trips: profile.total_trips || 0
+            total_trips: profile.total_trips || 0,
           });
         }
       }
 
-      // Fetch routes
       const { data: routesData, error: routesError } = await supabase
         .from('routes')
         .select('*')
@@ -120,25 +139,28 @@ export function App() {
           driver_name: r.driver_name || 'Verified Driver',
           driver_phone: r.driver_phone || '+91 98000 00000',
           driver_rating: 4.9,
-          vehicle_type: r.vehicle_type || 'Jeep / Cruiser',
-          vehicle_model: r.vehicle_model || 'Shared Vehicle',
-          plate_number: r.plate_number || 'RJ-14-XX-0000',
+          vehicle_type: r.vehicle_type || 'E-Rickshaw Shared (Toto / Electric)',
+          vehicle_model: r.vehicle_model || 'Mahindra Treo Electric',
+          plate_number: r.plate_number || 'DL-5E-AR-0000',
           origin: r.origin_name || r.origin,
           destination: r.destination_name || r.destination,
           intermediate_stops: r.intermediate_stops || [],
           departure_time: r.departure_time,
-          frequency: r.frequency || 'Daily',
+          frequency: r.frequency || 'Continuous',
           price_per_seat: Number(r.price_per_seat),
+          full_vehicle_price: Number(r.full_vehicle_price || r.price_per_seat * 4),
           available_seats: Number(r.available_seats),
-          total_seats: Number(r.total_seats || 6),
+          total_seats: Number(r.total_seats || 4),
           luggage_space: r.luggage_space || 'Allowed',
+          is_electric: (r.vehicle_type || '').includes('E-Rickshaw'),
           has_carrier: true,
-          status: 'active'
+          eta_mins: 3,
+          status: 'active',
         }));
         setRoutes(mappedRoutes);
       }
     } catch (err) {
-      console.log('Supabase sync skipped or errored:', err);
+      console.log('Supabase sync:', err);
     }
   };
 
@@ -146,7 +168,6 @@ export function App() {
     fetchSupabaseData();
   }, []);
 
-  // Handlers
   const handleLoginSuccess = (user: UserProfile) => {
     setCurrentUser(user);
     setActiveRole(user.role);
@@ -169,19 +190,18 @@ export function App() {
   };
 
   const handleConfirmBooking = async (newBooking: Booking) => {
-    // 1. Add to local state
-    setBookings(prev => [newBooking, ...prev]);
+    setBookings((prev) => [newBooking, ...prev]);
 
-    // 2. Decrement available seats in route
-    setRoutes(prev => prev.map(r => {
-      if (r.id === newBooking.route_id) {
-        const remaining = Math.max(0, r.available_seats - newBooking.seats_booked);
-        return { ...r, available_seats: remaining };
-      }
-      return r;
-    }));
+    setRoutes((prev) =>
+      prev.map((r) => {
+        if (r.id === newBooking.route_id) {
+          const remaining = Math.max(0, r.available_seats - newBooking.seats_booked);
+          return { ...r, available_seats: remaining };
+        }
+        return r;
+      })
+    );
 
-    // 3. Persist to Supabase if connected
     const supabase = getSupabaseClient();
     if (supabase) {
       try {
@@ -195,20 +215,20 @@ export function App() {
           passenger_name: newBooking.passenger_name,
           passenger_phone: newBooking.passenger_phone,
           payment_status: newBooking.payment_status,
-          status: 'confirmed'
+          status: 'confirmed',
         });
       } catch (e) {
-        console.error('Failed to save booking to Supabase:', e);
+        console.error('Supabase booking save:', e);
       }
     }
   };
 
   const handleCancelBooking = (bookingId: string) => {
-    setBookings(prev => prev.filter(b => b.id !== bookingId));
+    setBookings((prev) => prev.filter((b) => b.id !== bookingId));
   };
 
   const handleAddRoute = async (newRoute: SharedRoute) => {
-    setRoutes(prev => [newRoute, ...prev]);
+    setRoutes((prev) => [newRoute, ...prev]);
 
     const supabase = getSupabaseClient();
     if (supabase) {
@@ -223,20 +243,21 @@ export function App() {
           available_seats: newRoute.available_seats,
           total_seats: newRoute.total_seats,
           vehicle_type: newRoute.vehicle_type,
-          status: 'active'
+          status: 'active',
         });
       } catch (e) {
-        console.error('Failed to post route to Supabase:', e);
+        console.error('Supabase route post:', e);
       }
     }
   };
 
   const handleDeleteRoute = (routeId: string) => {
-    setRoutes(prev => prev.filter(r => r.id !== routeId));
+    setRoutes((prev) => prev.filter((r) => r.id !== routeId));
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-brand-500 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-brand-500 selection:text-white pb-14 md:pb-0">
+      
       {/* Top Navbar */}
       <Navbar
         currentUser={currentUser}
@@ -245,11 +266,14 @@ export function App() {
         onOpenAuth={() => setIsAuthOpen(true)}
         onLogout={handleLogout}
         onOpenSupabaseGuide={() => setIsSupabaseGuideOpen(true)}
+        onOpenSafety={() => setIsSafetyOpen(true)}
+        lang={lang}
+        onToggleLang={toggleLang}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
 
-      {/* Main App Content based on Role */}
+      {/* Main View Portals */}
       <main className="flex-1">
         {activeRole === 'traveller' ? (
           <TravellerView
@@ -259,6 +283,7 @@ export function App() {
             onBookRide={handleBookRide}
             onCancelBooking={handleCancelBooking}
             onOpenAuth={() => setIsAuthOpen(true)}
+            lang={lang}
           />
         ) : (
           <DriverView
@@ -267,13 +292,72 @@ export function App() {
             currentUser={currentUser}
             onAddRoute={handleAddRoute}
             onDeleteRoute={handleDeleteRoute}
-            onOpenAuth={() => setIsAuthOpen(true)}
+            lang={lang}
           />
         )}
       </main>
 
       {/* Footer */}
-      <Footer onOpenSupabaseGuide={() => setIsSupabaseGuideOpen(true)} />
+      <Footer
+        onOpenSupabaseGuide={() => setIsSupabaseGuideOpen(true)}
+        onOpenSafety={() => setIsSafetyOpen(true)}
+        lang={lang}
+      />
+
+      {/* Mobile Bottom Navigation Bar (Ola / Uber / Rapido Style) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-slate-200 px-2 py-1.5 shadow-2xl flex items-center justify-around">
+        <button
+          onClick={() => {
+            setActiveRole('traveller');
+            setActiveTab('explore');
+          }}
+          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all ${
+            activeRole === 'traveller' && activeTab === 'explore'
+              ? 'text-brand-600 font-black'
+              : 'text-slate-500 font-medium'
+          }`}
+        >
+          <Zap className="w-5 h-5" />
+          <span className="text-[10px]">{t.findRide.split(' ')[0]}</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveRole('traveller');
+            setActiveTab('live-map');
+          }}
+          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all ${
+            activeRole === 'traveller' && activeTab === 'live-map'
+              ? 'text-brand-600 font-black'
+              : 'text-slate-500 font-medium'
+          }`}
+        >
+          <Radio className="w-5 h-5" />
+          <span className="text-[10px]">Radar</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveRole('driver');
+          }}
+          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all ${
+            activeRole === 'driver'
+              ? 'text-brand-600 font-black'
+              : 'text-slate-500 font-medium'
+          }`}
+        >
+          <Car className="w-5 h-5" />
+          <span className="text-[10px]">{t.driverPortal.split(' ')[0]}</span>
+        </button>
+
+        <button
+          onClick={() => setIsSafetyOpen(true)}
+          className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl text-red-600 font-bold"
+        >
+          <ShieldCheck className="w-5 h-5" />
+          <span className="text-[10px]">SOS 112</span>
+        </button>
+      </div>
 
       {/* Auth Modal */}
       <AuthModal
@@ -283,16 +367,24 @@ export function App() {
         initialRole={activeRole}
       />
 
-      {/* Booking Seat Modal */}
+      {/* Booking Seat Modal with 4-Digit OTP */}
       <BookingModal
         isOpen={!!selectedRouteForBooking}
         route={selectedRouteForBooking}
         currentUser={currentUser}
         onClose={() => setSelectedRouteForBooking(null)}
         onConfirmBooking={handleConfirmBooking}
+        lang={lang}
       />
 
-      {/* Supabase PostgreSQL Guide & Config Modal */}
+      {/* Safety & SOS Modal */}
+      <SafetyModal
+        isOpen={isSafetyOpen}
+        onClose={() => setIsSafetyOpen(false)}
+        lang={lang}
+      />
+
+      {/* Supabase Guide Modal */}
       <SupabaseGuideModal
         isOpen={isSupabaseGuideOpen}
         onClose={() => setIsSupabaseGuideOpen(false)}
@@ -301,4 +393,5 @@ export function App() {
     </div>
   );
 }
+
 export default App;

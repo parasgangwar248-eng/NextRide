@@ -1,12 +1,13 @@
 export type UserRole = 'traveller' | 'driver';
 
+export type Language = 'en' | 'hi';
+
 export type VehicleCategory = 
-  | 'Jeep / Cruiser'
-  | 'Tata Magic / Mini-Van'
-  | 'Auto / E-Rickshaw'
-  | 'Rural Express Bus'
-  | 'Private Car / Shared Taxi'
-  | 'Bike / Scooter';
+  | 'E-Rickshaw Shared (Toto / Electric)'
+  | 'Shared CNG Auto (6-Seater)'
+  | 'Full Auto (Private Booking)'
+  | 'Auto Parcel / Agri Cargo'
+  | 'Rural Jeep / Cruiser';
 
 export interface UserProfile {
   id: string;
@@ -28,7 +29,8 @@ export interface Vehicle {
   plate_number: string;
   total_seats: number;
   has_carrier: boolean;
-  is_ac: boolean;
+  is_electric: boolean;
+  battery_range?: string;
   color?: string;
 }
 
@@ -39,6 +41,7 @@ export interface SharedRoute {
   driver_phone: string;
   driver_rating: number;
   driver_avatar?: string;
+  driver_experience?: string;
   vehicle_type: VehicleCategory;
   vehicle_model: string;
   plate_number: string;
@@ -49,18 +52,23 @@ export interface SharedRoute {
   departure_date?: string;
   frequency: string;
   price_per_seat: number;
+  full_vehicle_price?: number;
   available_seats: number;
   total_seats: number;
   luggage_space?: string;
   has_carrier?: boolean;
-  is_ac?: boolean;
+  is_electric?: boolean;
+  eta_mins?: number;
+  distance_km?: number;
   status: 'active' | 'in_transit' | 'completed' | 'cancelled';
   notes?: string;
+  current_location?: { x: number; y: number; label: string };
   created_at?: string;
 }
 
 export interface Booking {
   id: string;
+  otp: string; // 4-digit ride start OTP
   route_id: string;
   traveller_id: string;
   passenger_name: string;
@@ -68,8 +76,9 @@ export interface Booking {
   pickup_point: string;
   drop_point: string;
   seats_booked: number;
+  booking_type: 'shared_seat' | 'full_auto' | 'parcel';
   total_fare: number;
-  status: 'confirmed' | 'pending' | 'completed' | 'cancelled';
+  status: 'confirmed' | 'in_transit' | 'completed' | 'cancelled';
   payment_status: 'cash_on_ride' | 'upi_paid' | 'wallet';
   created_at: string;
   route?: SharedRoute;
@@ -78,7 +87,7 @@ export interface Booking {
 export interface SearchFilters {
   origin: string;
   destination: string;
-  date: string;
   vehicleType: string;
-  requiredSeats: number;
+  bookingType: 'all' | 'shared' | 'full';
+  maxFare?: number;
 }

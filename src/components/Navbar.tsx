@@ -1,7 +1,8 @@
-import React from 'react';
-import { UserProfile, UserRole } from '../lib/types';
+import React, { useState } from 'react';
+import { UserProfile, UserRole, Language } from '../lib/types';
+import { translations } from '../lib/translations';
 import { InstallPwaButton } from './InstallPwaButton';
-import { Compass, Car, Database, LogOut, User, Menu, X, PlusCircle, CheckCircle, Sparkles } from 'lucide-react';
+import { Compass, Car, Database, LogOut, User, Menu, X, ShieldCheck, Languages, Zap, AlertTriangle } from 'lucide-react';
 import { getSavedSupabaseConfig } from '../lib/supabaseClient';
 
 interface NavbarProps {
@@ -11,7 +12,10 @@ interface NavbarProps {
   onOpenAuth: () => void;
   onLogout: () => void;
   onOpenSupabaseGuide: () => void;
-  activeTab: 'explore' | 'bookings' | 'driver-routes' | 'driver-post';
+  onOpenSafety: () => void;
+  lang: Language;
+  onToggleLang: () => void;
+  activeTab: 'explore' | 'bookings' | 'live-map' | 'driver-routes' | 'driver-post';
   setActiveTab: (tab: any) => void;
 }
 
@@ -22,12 +26,15 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAuth,
   onLogout,
   onOpenSupabaseGuide,
-  activeTab,
+  onOpenSafety,
+  lang,
+  onToggleLang,
   setActiveTab,
 }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const supabaseConfig = getSavedSupabaseConfig();
   const isSupabaseConfigured = !!supabaseConfig.url;
+  const t = translations[lang];
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm transition-all">
@@ -48,17 +55,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="text-lg sm:text-2xl font-black tracking-tight text-slate-900 font-sans">
                   Next<span className="text-brand-600">Ride</span>
                 </span>
-                <span className="hidden md:inline-block px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider bg-brand-50 text-brand-700 rounded-full border border-brand-200">
-                  Rural Mobility
+                <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">
+                  ⚡ Auto & Toto
                 </span>
               </div>
               <p className="text-[10px] sm:text-xs text-slate-500 font-medium tracking-tight hidden xs:block">
-                Your next ride, on time, every time
+                {t.tagline}
               </p>
             </div>
           </div>
 
-          {/* Center Role Toggle (Desktop & Tablet) */}
+          {/* Center Mode Switcher (Desktop & Tablet) */}
           <div className="hidden md:flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200/80">
             <button
               onClick={() => onRoleChange('traveller')}
@@ -68,8 +75,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Compass className="w-3.5 h-3.5" />
-              <span>Find a Ride (Traveller)</span>
+              <Zap className="w-3.5 h-3.5" />
+              <span>{t.findRide}</span>
             </button>
             <button
               onClick={() => onRoleChange('driver')}
@@ -80,35 +87,54 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <Car className="w-3.5 h-3.5" />
-              <span>Driver Portal</span>
+              <span>{t.driverPortal}</span>
             </button>
           </div>
 
-          {/* Right Actions: Supabase Status + PWA Install + User Auth */}
+          {/* Right Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
+            
+            {/* Language Switcher Button (EN / हिंदी) */}
+            <button
+              onClick={onToggleLang}
+              className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition-all active:scale-95"
+              title="Switch Language / भाषा बदलें"
+            >
+              <Languages className="w-3.5 h-3.5 text-brand-600" />
+              <span>{lang === 'en' ? 'हिंदी' : 'English'}</span>
+            </button>
+
+            {/* Safety SOS Quick Button */}
+            <button
+              onClick={onOpenSafety}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 transition-all"
+              title="24x7 Safety & SOS Helpline"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-red-600" />
+              <span className="hidden sm:inline">{t.safety}</span>
+            </button>
+
             {/* Supabase Status Button */}
             <button
               onClick={onOpenSupabaseGuide}
-              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+              className={`hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                 isSupabaseConfigured
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
                   : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
               }`}
-              title="Click to view/configure Supabase Database"
+              title="Database connection"
             >
               <Database className="w-3.5 h-3.5" />
-              <span className="hidden lg:inline">
-                {isSupabaseConfigured ? 'Supabase Connected' : 'Connect Supabase'}
-              </span>
-              <span className={`w-2 h-2 rounded-full ${isSupabaseConfigured ? 'bg-emerald-500' : 'bg-amber-500 animate-ping'}`} />
+              <span>{isSupabaseConfigured ? 'Supabase' : 'DB'}</span>
+              <span className={`w-2 h-2 rounded-full ${isSupabaseConfigured ? 'bg-emerald-500' : 'bg-amber-500'}`} />
             </button>
 
-            {/* PWA Install Button (Always visible on top-right as requested) */}
+            {/* PWA Install Button */}
             <InstallPwaButton variant="navbar" />
 
-            {/* Auth Actions */}
+            {/* User Auth */}
             {currentUser ? (
-              <div className="flex items-center gap-2 pl-1 sm:pl-2">
+              <div className="flex items-center gap-2 pl-1">
                 <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 p-1 sm:pr-3 rounded-full">
                   {currentUser.avatar_url ? (
                     <img
@@ -122,8 +148,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                     </div>
                   )}
                   <div className="hidden sm:block text-left">
-                    <p className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[100px]">
-                      {currentUser.full_name}
+                    <p className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[90px]">
+                      {currentUser.full_name.split(' ')[0]}
                     </p>
                     <p className="text-[10px] text-brand-600 font-semibold capitalize">
                       {currentUser.role}
@@ -133,7 +159,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   onClick={onLogout}
                   className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                  title="Log out"
+                  title={t.logout}
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
@@ -144,11 +170,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs sm:text-sm shadow-sm transition-all active:scale-95"
               >
                 <User className="w-4 h-4" />
-                <span>Login / Sign Up</span>
+                <span className="hidden xs:inline">{t.loginSignUp}</span>
+                <span className="xs:hidden">Login</span>
               </button>
             )}
 
-            {/* Mobile Menu Toggle Button */}
+            {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-100"
@@ -172,8 +199,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 activeRole === 'traveller' ? 'bg-brand-600 text-white' : 'text-slate-600'
               }`}
             >
-              <Compass className="w-3.5 h-3.5" />
-              <span>Traveller Mode</span>
+              <Zap className="w-3.5 h-3.5" />
+              <span>{t.findRide}</span>
             </button>
             <button
               onClick={() => {
@@ -185,11 +212,25 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <Car className="w-3.5 h-3.5" />
-              <span>Driver Portal</span>
+              <span>{t.driverPortal}</span>
             </button>
           </div>
 
           <div className="pt-2 flex flex-col gap-2">
+            <button
+              onClick={() => {
+                onOpenSafety();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full py-2.5 px-3 bg-red-50 text-red-700 rounded-xl font-bold text-xs flex items-center justify-between border border-red-100"
+            >
+              <span className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-red-600" />
+                {t.safetyToolkit} (SOS 112)
+              </span>
+              <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full font-bold">24x7</span>
+            </button>
+
             <button
               onClick={() => {
                 onOpenSupabaseGuide();
