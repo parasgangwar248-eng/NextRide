@@ -6,6 +6,7 @@ import { Navbar } from './components/Navbar';
 import { TravellerView } from './components/TravellerView';
 import { DriverView } from './components/DriverView';
 import { AuthModal } from './components/AuthModal';
+import { AuthGateway } from './components/AuthGateway';
 import { BookingModal } from './components/BookingModal';
 import { SafetyModal } from './components/SafetyModal';
 import { SupabaseGuideModal } from './components/SupabaseGuideModal';
@@ -33,11 +34,13 @@ export function App() {
 
   const t = translations[lang];
 
-  // Authentication & Role
+  // Authentication & Guest State
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
     const saved = localStorage.getItem(STORAGE_USER_KEY);
     return saved ? JSON.parse(saved) : null;
   });
+
+  const [isGuestMode, setIsGuestMode] = useState(false);
 
   const [activeRole, setActiveRole] = useState<UserRole>(() => {
     return currentUser?.role || 'traveller';
@@ -179,6 +182,7 @@ export function App() {
       await supabase.auth.signOut();
     }
     setCurrentUser(null);
+    setIsGuestMode(false);
   };
 
   const handleRoleChange = (role: UserRole) => {
@@ -254,6 +258,18 @@ export function App() {
   const handleDeleteRoute = (routeId: string) => {
     setRoutes((prev) => prev.filter((r) => r.id !== routeId));
   };
+
+  // If user is not logged in and not in guest mode, show the Login Page first!
+  if (!currentUser && !isGuestMode) {
+    return (
+      <AuthGateway
+        onLoginSuccess={handleLoginSuccess}
+        onExploreAsGuest={() => setIsGuestMode(true)}
+        lang={lang}
+        onToggleLang={toggleLang}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-brand-500 selection:text-white pb-14 md:pb-0">
