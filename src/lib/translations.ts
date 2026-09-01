@@ -2,7 +2,7 @@ export const translations = {
   en: {
     // Brand & Header
     tagline: 'Your next ride, on time, every time',
-    ruralMobility: 'E-Rickshaw & Auto Shared Mobility',
+    ruralMobility: 'Book E-Rickshaws & Autos in Seconds',
     findRide: 'Book Auto / Toto',
     driverPortal: 'Driver Mode',
     installApp: 'Install App',
@@ -15,8 +15,11 @@ export const translations = {
     language: 'Language',
 
     // Hero & Search
-    heroTitle: 'Book E-Rickshaws & Autos in Seconds',
-    heroSubtitle: 'Affordable village hops, mandi runs, & station shuttles. Share seats from ₹10 or reserve full auto.',
+    heroTitle: 'Your next ride, on time, every time',
+    heroSubtitle: 'Book E-Rickshaws & Autos in seconds • Affordable village hops, Mandi runs, & Station shuttles. Share seats from ₹10 or reserve full auto.',
+    voiceListening: 'Listening... Please speak now',
+    voicePromptPickup: 'Speak pickup point (e.g. Rampur Chowk)',
+    voicePromptDrop: 'Speak destination (e.g. Krishi Mandi)',
     sharedSeatsMode: '⚡ Shared Seat (Save 75%)',
     fullAutoMode: '🛺 Book Whole Auto (Private)',
     pickupLabel: 'Pickup Point / Village Chowk',
@@ -107,8 +110,11 @@ export const translations = {
     language: 'भाषा',
 
     // Hero & Search
-    heroTitle: 'सेकंडों में ई-रिक्शा और ऑटो बुक करें',
-    heroSubtitle: 'गांव, मंडी और रेलवे स्टेशन के लिए सबसे किफायती सवारी। मात्र ₹10 से शेयर सीट या पूरा ऑटो बुक करें।',
+    heroTitle: 'आपकी अगली सवारी, समय पर, हर बार',
+    heroSubtitle: 'सेकंडों में ई-रिक्शा और ऑटो बुक करें • गांव, मंडी और रेलवे स्टेशन के लिए सबसे किफायती सवारी। मात्र ₹10 से शेयर सीट या पूरा ऑटो बुक करें।',
+    voiceListening: 'सुन रहे हैं... कृपया बोलिए',
+    voicePromptPickup: 'शुरुआती स्थान बोलिए (उदा. रामपुर चौक)',
+    voicePromptDrop: 'गंतव्य स्थान बोलिए (उदा. कृषि मंडी)',
     sharedSeatsMode: '⚡ शेयर सीट (75% बचत)',
     fullAutoMode: '🛺 पूरा ऑटो (प्राइवेट)',
     pickupLabel: 'सवारी का स्थान / गांव का चौक',

@@ -4,7 +4,7 @@ import { translations } from '../lib/translations';
 import { RideCard } from './RideCard';
 import { LiveRouteMap } from './LiveRouteMap';
 import { POPULAR_LOCATIONS } from '../lib/mockData';
-import { Search, MapPin, Ticket, ArrowRightLeft, Sparkles, Phone, Radio, Zap, Car, Package, Share2, Navigation, CheckCircle2 } from 'lucide-react';
+import { Search, MapPin, Ticket, ArrowUpDown, Sparkles, Phone, Radio, Zap, Car, Package, Share2, Navigation, CheckCircle2, Mic, MicOff, Volume2 } from 'lucide-react';
 import { InstallPwaButton } from './InstallPwaButton';
 
 interface TravellerViewProps {
@@ -32,6 +32,60 @@ export const TravellerView: React.FC<TravellerViewProps> = ({
   const [activeTab, setActiveTab] = useState<'rides' | 'map' | 'my-bookings'>('rides');
   const [priceFilter, setPriceFilter] = useState<number | null>(null);
   const [selectedMapRoute, setSelectedMapRoute] = useState<SharedRoute | null>(null);
+  const [isListening, setIsListening] = useState<'pickup' | 'drop' | null>(null);
+  const [voiceToast, setVoiceToast] = useState<string | null>(null);
+
+  // Voice Search Handler using Web Speech Recognition
+  const handleVoiceInput = (target: 'pickup' | 'drop') => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert('Voice recognition is not supported in this browser. Please use Chrome or Edge.');
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = lang === 'hi' ? 'hi-IN' : 'en-IN';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      setIsListening(target);
+      setVoiceToast(target === 'pickup' ? t.voicePromptPickup : t.voicePromptDrop);
+
+      recognition.onstart = () => {
+        setIsListening(target);
+      };
+
+      recognition.onresult = (event: any) => {
+        const spokenText = event.results[0][0].transcript;
+        if (target === 'pickup') {
+          setPickup(spokenText);
+        } else {
+          setDrop(spokenText);
+        }
+        setIsListening(null);
+        setVoiceToast(null);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(null);
+        setVoiceToast(null);
+      };
+
+      recognition.onend = () => {
+        setIsListening(null);
+        setVoiceToast(null);
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.error('Voice search failed:', err);
+      setIsListening(null);
+      setVoiceToast(null);
+    }
+  };
 
   // Filter routes
   const filteredRoutes = routes.filter((route) => {
@@ -84,38 +138,60 @@ export const TravellerView: React.FC<TravellerViewProps> = ({
         <InstallPwaButton variant="banner" />
       </div>
 
-      {/* Hero Section */}
+      {/* Hero Section with Main Tagline & Vertical Search */}
       <section className="relative overflow-hidden bg-gradient-to-br from-brand-900 via-brand-700 to-blue-900 text-white rounded-3xl mx-4 sm:mx-6 lg:mx-8 shadow-2xl p-6 sm:p-10 lg:p-12 border border-brand-500/30">
         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-cyan-400/15 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-brand-400/20 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-cyan-200 text-xs font-extrabold mb-4">
-            <Zap className="w-3.5 h-3.5 text-yellow-300 fill-yellow-300" />
-            <span>{t.ruralMobility}</span>
+        <div className="relative z-10 max-w-3xl mx-auto">
+          
+          {/* Tagline & Subheading */}
+          <div className="text-center sm:text-left mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-cyan-200 text-xs font-extrabold mb-3">
+              <Zap className="w-3.5 h-3.5 text-yellow-300 fill-yellow-300" />
+              <span>{t.ruralMobility}</span>
+            </div>
+
+            {/* Main Tagline as Primary Headline */}
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
+              {t.heroTitle}
+            </h1>
+
+            <p className="mt-2.5 text-xs sm:text-base text-blue-100/90 leading-relaxed font-medium">
+              {t.heroSubtitle}
+            </p>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
-            {t.heroTitle}
-          </h1>
-
-          <p className="mt-3 text-xs sm:text-base text-blue-100/90 leading-relaxed font-medium">
-            {t.heroSubtitle}
-          </p>
-
-          {/* Search Box */}
-          <div className="mt-6 sm:mt-8 bg-white p-3.5 sm:p-4 rounded-3xl shadow-2xl text-slate-900 border border-slate-100">
+          {/* Vertical Search Box (Ola & Uber Style) */}
+          <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-2xl text-slate-900 border border-slate-100 relative">
             
-            {/* Pickup & Drop Inputs */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5 sm:gap-3 items-center">
+            {/* Voice Toast Banner when Mic is Active */}
+            {voiceToast && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs font-bold flex items-center justify-between animate-pulse">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-red-600 animate-ping" />
+                  <span>{voiceToast}</span>
+                </div>
+                <button onClick={() => setVoiceToast(null)} className="text-xs text-slate-400 hover:text-slate-700">Cancel</button>
+              </div>
+            )}
+
+            <div className="relative flex flex-col gap-3">
               
-              {/* Pickup */}
-              <div className="md:col-span-5 relative">
-                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 ml-3 mb-1">
+              {/* Visual Vertical Route Connector Line */}
+              <div className="absolute left-[17px] top-[30px] bottom-[30px] w-0.5 bg-gradient-to-b from-brand-600 via-blue-300 to-emerald-500 z-0 hidden xs:block" />
+
+              {/* 1. Pickup Input Row (Vertical) */}
+              <div className="relative z-10">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1 ml-9">
                   {t.pickupLabel}
                 </label>
-                <div className="flex items-center bg-slate-50 rounded-2xl px-3 py-2.5 border border-slate-200 focus-within:border-brand-600 focus-within:bg-white transition-all">
-                  <div className="w-3 h-3 rounded-full bg-brand-600 ring-4 ring-brand-100 shrink-0 mr-2.5" />
+                <div className={`flex items-center bg-slate-50 rounded-2xl px-3 py-2.5 border transition-all ${
+                  isListening === 'pickup'
+                    ? 'border-red-500 bg-red-50/40 ring-2 ring-red-200'
+                    : 'border-slate-200 focus-within:border-brand-600 focus-within:bg-white'
+                }`}>
+                  <div className="w-3.5 h-3.5 rounded-full bg-brand-600 ring-4 ring-brand-100 shrink-0 mr-3 shadow-sm" />
                   <input
                     type="text"
                     value={pickup}
@@ -129,27 +205,47 @@ export const TravellerView: React.FC<TravellerViewProps> = ({
                       <option key={i} value={loc} />
                     ))}
                   </datalist>
+
+                  {/* Microphone Voice Button for Pickup */}
+                  <button
+                    type="button"
+                    onClick={() => handleVoiceInput('pickup')}
+                    className={`p-2 rounded-xl transition-all ml-1 shrink-0 ${
+                      isListening === 'pickup'
+                        ? 'bg-red-600 text-white animate-bounce shadow-md shadow-red-500/40'
+                        : 'bg-slate-100 hover:bg-brand-50 hover:text-brand-600 text-slate-500'
+                    }`}
+                    title="Speak Pickup Location"
+                  >
+                    <Mic className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
-              {/* Swap Button */}
-              <div className="hidden md:flex md:col-span-1 justify-center">
+              {/* Swap Button (Floating Center-Right) */}
+              <div className="flex justify-end -my-1.5 z-20 pr-4">
                 <button
+                  type="button"
                   onClick={swapLocations}
-                  className="p-2.5 bg-slate-100 hover:bg-brand-50 hover:text-brand-600 text-slate-500 rounded-full transition-colors border border-slate-200 active:rotate-180 duration-200"
-                  title="Swap locations"
+                  className="p-2 bg-white hover:bg-brand-50 hover:text-brand-600 text-slate-600 rounded-full shadow-md border border-slate-200 transition-all active:rotate-180 flex items-center gap-1 text-[11px] font-bold"
+                  title="Swap Pickup & Destination"
                 >
-                  <ArrowRightLeft className="w-4 h-4" />
+                  <ArrowUpDown className="w-3.5 h-3.5 text-brand-600" />
+                  <span className="text-[10px] pr-1">Swap</span>
                 </button>
               </div>
 
-              {/* Drop */}
-              <div className="md:col-span-5 relative">
-                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 ml-3 mb-1">
+              {/* 2. Drop Destination Row (Vertical) */}
+              <div className="relative z-10">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1 ml-9">
                   {t.dropLabel}
                 </label>
-                <div className="flex items-center bg-slate-50 rounded-2xl px-3 py-2.5 border border-slate-200 focus-within:border-brand-600 focus-within:bg-white transition-all">
-                  <div className="w-3 h-3 rounded-full bg-emerald-600 ring-4 ring-emerald-100 shrink-0 mr-2.5" />
+                <div className={`flex items-center bg-slate-50 rounded-2xl px-3 py-2.5 border transition-all ${
+                  isListening === 'drop'
+                    ? 'border-red-500 bg-red-50/40 ring-2 ring-red-200'
+                    : 'border-slate-200 focus-within:border-emerald-600 focus-within:bg-white'
+                }`}>
+                  <div className="w-3.5 h-3.5 rounded-full bg-emerald-600 ring-4 ring-emerald-100 shrink-0 mr-3 shadow-sm" />
                   <input
                     type="text"
                     value={drop}
@@ -163,24 +259,39 @@ export const TravellerView: React.FC<TravellerViewProps> = ({
                       <option key={i} value={loc} />
                     ))}
                   </datalist>
+
+                  {/* Microphone Voice Button for Drop */}
+                  <button
+                    type="button"
+                    onClick={() => handleVoiceInput('drop')}
+                    className={`p-2 rounded-xl transition-all ml-1 shrink-0 ${
+                      isListening === 'drop'
+                        ? 'bg-red-600 text-white animate-bounce shadow-md shadow-red-500/40'
+                        : 'bg-slate-100 hover:bg-emerald-50 hover:text-emerald-600 text-slate-500'
+                    }`}
+                    title="Speak Destination"
+                  >
+                    <Mic className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
-              {/* Search Icon / Action */}
-              <div className="md:col-span-1 flex md:items-end">
+              {/* 3. Action Search Button (Full Width) */}
+              <div className="pt-2 z-10">
                 <button
                   onClick={() => {}}
-                  className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-black flex items-center justify-center shadow-lg shadow-brand-500/25 transition-all"
-                  title="Search"
+                  className="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-black text-sm shadow-lg shadow-brand-500/30 transition-all flex items-center justify-center gap-2 active:scale-95"
                 >
-                  <Search className="w-5 h-5" />
+                  <Search className="w-4 h-4" />
+                  <span>Find Available E-Rickshaws & Autos</span>
                 </button>
               </div>
+
             </div>
 
             {/* Quick Hub Pills */}
-            <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-1.5 overflow-x-auto text-xs text-slate-600 scrollbar-none">
-              <span className="text-[10px] uppercase font-extrabold text-slate-400 shrink-0">{t.popularStops}</span>
+            <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center gap-1.5 overflow-x-auto text-xs text-slate-600 scrollbar-none">
+              <span className="text-[10px] uppercase font-black text-slate-400 shrink-0">{t.popularStops}</span>
               {['Rampur Chowk', 'Krishi Mandi', 'Railway Jn', 'Tehsil', 'Civil Hospital', 'Sabzi Mandi'].map((tag) => (
                 <button
                   key={tag}
@@ -188,7 +299,7 @@ export const TravellerView: React.FC<TravellerViewProps> = ({
                     if (!pickup) setPickup(tag);
                     else setDrop(tag);
                   }}
-                  className="px-3 py-1 bg-slate-100 hover:bg-blue-50 hover:text-brand-700 rounded-xl text-[11px] font-bold transition-all shrink-0 border border-slate-200/60"
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-blue-50 hover:text-brand-700 rounded-xl text-[11px] font-bold transition-all shrink-0 border border-slate-200/60"
                 >
                   {tag}
                 </button>
