@@ -26,6 +26,10 @@ export const AuthGateway: React.FC<AuthGatewayProps> = ({
     initialRole === 'driver' ? 'driver' : 'passenger'
   );
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminError, setAdminError] = useState<string | null>(null);
 
   // Form states
   const [email, setEmail] = useState('');
@@ -41,6 +45,28 @@ export const AuthGateway: React.FC<AuthGatewayProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminError(null);
+
+    if (adminUsername.trim() === 'Teamnextride' && adminPassword === '#nextride@123') {
+      const adminProfile: UserProfile = {
+        id: 'adm-nextride-hq',
+        email: 'admin@nextride.in',
+        full_name: 'NextRide HQ Admin',
+        phone: '+91 99999 00000',
+        role: 'admin',
+        village_town: 'NextRide HQ',
+        rating: 5.0,
+        total_trips: 0
+      };
+      setIsAdminModalOpen(false);
+      onLoginSuccess(adminProfile);
+    } else {
+      setAdminError('Invalid Admin credentials. (Username: Teamnextride)');
+    }
+  };
 
   const handleDemoLogin = (demoUser: UserProfile) => {
     setIsLoading(true);
@@ -257,6 +283,19 @@ export const AuthGateway: React.FC<AuthGatewayProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Admin Login Button on Top Corner */}
+          <button
+            onClick={() => {
+              setAdminError(null);
+              setIsAdminModalOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 shadow-sm transition-all active:scale-95"
+            title="Admin Login Portal (प्रशासक लॉगिन)"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+            <span>Admin</span>
+          </button>
+
           {/* Language Toggle */}
           <button
             onClick={onToggleLang}
@@ -270,6 +309,75 @@ export const AuthGateway: React.FC<AuthGatewayProps> = ({
           <InstallPwaButton variant="navbar" />
         </div>
       </header>
+
+      {/* Admin Login Modal */}
+      {isAdminModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+          <div className="bg-slate-900 border border-amber-500/30 rounded-3xl max-w-sm w-full p-6 text-white shadow-2xl animate-fadeIn">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-black text-sm text-white">NextRide Admin Portal</h3>
+                  <p className="text-[10px] text-slate-400">Executive & Verification Access</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsAdminModalOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                ✕
+              </button>
+            </div>
+
+            {adminError && (
+              <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 text-red-300 text-xs rounded-xl font-bold">
+                {adminError}
+              </div>
+            )}
+
+            <form onSubmit={handleAdminLogin} className="mt-4 space-y-3.5">
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">
+                  Admin Username
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={adminUsername}
+                  onChange={(e) => setAdminUsername(e.target.value)}
+                  placeholder="Teamnextride"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">
+                  Admin Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl font-black text-xs shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 mt-2"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>Login to Admin Panel</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Main Authentication Container */}
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 z-10 my-3">

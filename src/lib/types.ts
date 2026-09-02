@@ -1,4 +1,4 @@
-export type UserRole = 'traveller' | 'driver';
+export type UserRole = 'traveller' | 'driver' | 'admin';
 
 export type Language = 'en' | 'hi';
 

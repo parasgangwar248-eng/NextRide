@@ -91,6 +91,19 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Car className="w-3.5 h-3.5" />
               <span>{t.driverPortal}</span>
             </button>
+            {currentUser?.role === 'admin' && (
+              <button
+                onClick={() => onRoleChange('admin')}
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                  activeRole === 'admin'
+                    ? 'bg-amber-500 text-slate-950 shadow-md'
+                    : 'text-amber-700 hover:text-amber-900 font-bold'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Admin HQ</span>
+              </button>
+            )}
           </div>
 
           {/* Right Actions */}

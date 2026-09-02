@@ -5,6 +5,7 @@ import { getSupabaseClient } from './lib/supabaseClient';
 import { Navbar } from './components/Navbar';
 import { TravellerView } from './components/TravellerView';
 import { DriverView } from './components/DriverView';
+import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/AuthModal';
 import { AuthGateway } from './components/AuthGateway';
 import { BookingModal } from './components/BookingModal';
@@ -309,7 +310,17 @@ export function App() {
 
       {/* Main View Portals */}
       <main className="flex-1">
-        {activeRole === 'traveller' ? (
+        {activeRole === 'admin' ? (
+          <AdminPanel
+            currentUser={currentUser}
+            routes={routes}
+            bookings={bookings}
+            lang={lang}
+            onLogout={handleLogout}
+            onSwitchToTraveller={() => setActiveRole('traveller')}
+            onSwitchToDriver={() => setActiveRole('driver')}
+          />
+        ) : activeRole === 'traveller' ? (
           <TravellerView
             routes={routes}
             bookings={bookings}
