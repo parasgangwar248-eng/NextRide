@@ -73,20 +73,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       setConfirmedBooking(newBooking);
       onConfirmBooking(newBooking);
 
-      // Voice prompt confirmation
-      if ('speechSynthesis' in window) {
-        try {
-          const msgText = lang === 'hi'
-            ? `आपकी नेक्स्टराइड बुक हो गई है। ओटीपी है ${generatedOtp}`
-            : `Your NextRide auto is booked. Your OTP is ${generatedOtp}`;
-          const utterance = new SpeechSynthesisUtterance(msgText);
-          utterance.lang = lang === 'hi' ? 'hi-IN' : 'en-IN';
-          window.speechSynthesis.speak(utterance);
-        } catch (err) {
-          // Voice feedback optional
-        }
-      }
-
       // Fire celebration confetti
       confetti({
         particleCount: 90,
@@ -94,7 +80,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         origin: { y: 0.6 },
         colors: ['#2563eb', '#10b981', '#38bdf8', '#fbbf24'],
       });
-    }, 600);
+    }, 400);
   };
 
   const handleShareWhatsApp = (b: Booking) => {

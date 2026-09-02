@@ -9,6 +9,7 @@ import { AuthModal } from './components/AuthModal';
 import { AuthGateway } from './components/AuthGateway';
 import { BookingModal } from './components/BookingModal';
 import { SafetyModal } from './components/SafetyModal';
+import { SettingsModal } from './components/SettingsModal';
 import { SupabaseGuideModal } from './components/SupabaseGuideModal';
 import { Footer } from './components/Footer';
 import { Zap, Radio, Ticket, Car, ShieldCheck } from 'lucide-react';
@@ -41,6 +42,7 @@ export function App() {
   });
 
   const [isGuestMode, setIsGuestMode] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const [activeRole, setActiveRole] = useState<UserRole>(() => {
     return currentUser?.role || 'traveller';
@@ -228,6 +230,21 @@ export function App() {
   };
 
   const handleCancelBooking = (bookingId: string) => {
+    const bookingToCancel = bookings.find(b => b.id === bookingId);
+    if (bookingToCancel) {
+      // Restock seats
+      setRoutes(prev =>
+        prev.map(r => {
+          if (r.id === bookingToCancel.route_id) {
+            return {
+              ...r,
+              available_seats: Math.min(r.total_seats, r.available_seats + bookingToCancel.seats_booked)
+            };
+          }
+          return r;
+        })
+      );
+    }
     setBookings((prev) => prev.filter((b) => b.id !== bookingId));
   };
 
@@ -283,6 +300,7 @@ export function App() {
         onLogout={handleLogout}
         onOpenSupabaseGuide={() => setIsSupabaseGuideOpen(true)}
         onOpenSafety={() => setIsSafetyOpen(true)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
         lang={lang}
         onToggleLang={toggleLang}
         activeTab={activeTab}
@@ -367,6 +385,14 @@ export function App() {
         </button>
 
         <button
+          onClick={() => setIsSettingsOpen(true)}
+          className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl text-slate-600 hover:text-slate-900 font-bold"
+        >
+          <ShieldCheck className="w-5 h-5 text-brand-600" />
+          <span className="text-[10px]">Settings</span>
+        </button>
+
+        <button
           onClick={() => setIsSafetyOpen(true)}
           className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl text-red-600 font-bold"
         >
@@ -375,12 +401,31 @@ export function App() {
         </button>
       </div>
 
-      {/* Auth Modal */}
+      {/* Auth Modal (Create Account / Switch Account) */}
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         onLoginSuccess={handleLoginSuccess}
         initialRole={activeRole}
+      />
+
+      {/* Settings & Accounts Management Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        currentUser={currentUser}
+        onSwitchUser={handleLoginSuccess}
+        onCreateAnotherAccount={() => {
+          setIsSettingsOpen(false);
+          setIsAuthOpen(true);
+        }}
+        onLogout={handleLogout}
+        onOpenSupabaseGuide={() => {
+          setIsSettingsOpen(false);
+          setIsSupabaseGuideOpen(true);
+        }}
+        lang={lang}
+        onToggleLang={toggleLang}
       />
 
       {/* Booking Seat Modal with 4-Digit OTP */}
@@ -411,3 +456,4 @@ export function App() {
 }
 
 export default App;
+

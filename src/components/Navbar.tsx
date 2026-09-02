@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { UserProfile, UserRole, Language } from '../lib/types';
 import { translations } from '../lib/translations';
 import { InstallPwaButton } from './InstallPwaButton';
-import { Compass, Car, Database, LogOut, User, Menu, X, ShieldCheck, Languages, Zap, AlertTriangle } from 'lucide-react';
+import { Compass, Car, Database, LogOut, User, Menu, X, ShieldCheck, Languages, Zap, AlertTriangle, Settings } from 'lucide-react';
 import { getSavedSupabaseConfig } from '../lib/supabaseClient';
 
 interface NavbarProps {
@@ -13,6 +13,7 @@ interface NavbarProps {
   onLogout: () => void;
   onOpenSupabaseGuide: () => void;
   onOpenSafety: () => void;
+  onOpenSettings: () => void;
   lang: Language;
   onToggleLang: () => void;
   activeTab: 'explore' | 'bookings' | 'live-map' | 'driver-routes' | 'driver-post';
@@ -27,6 +28,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogout,
   onOpenSupabaseGuide,
   onOpenSafety,
+  onOpenSettings,
   lang,
   onToggleLang,
   setActiveTab,
@@ -132,10 +134,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* PWA Install Button */}
             <InstallPwaButton variant="navbar" />
 
-            {/* User Auth */}
+            {/* User Auth & Settings */}
             {currentUser ? (
-              <div className="flex items-center gap-2 pl-1">
-                <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 p-1 sm:pr-3 rounded-full">
+              <div className="flex items-center gap-1.5 pl-1">
+                <div 
+                  onClick={onOpenSettings}
+                  className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 p-1 sm:pr-3 rounded-full cursor-pointer transition-all"
+                  title="Click to open Settings & Switch Account"
+                >
                   {currentUser.avatar_url ? (
                     <img
                       src={currentUser.avatar_url}
@@ -156,6 +162,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                     </p>
                   </div>
                 </div>
+
+                <button
+                  onClick={onOpenSettings}
+                  className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors"
+                  title="Settings & Accounts"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+
                 <button
                   onClick={onLogout}
                   className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
