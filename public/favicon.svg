@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1462EC" />
+      <stop offset="40%" stop-color="#1258D4" />
+      <stop offset="100%" stop-color="#0D40AB" />
+    </linearGradient>
+  </defs>
+  
+  <!-- App Squircle Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  
+  <!-- NextRide Mobility Route N Icon -->
+  <g fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Main Interconnected Transit Route Line forming 'N' -->
+    <path d="M 148 340 
+             L 148 200 
+             C 148 168 186 150 212 174 
+             L 326 288 
+             C 342 304 366 312 388 296 
+             L 388 172" 
+          stroke-width="26" />
+
+    <!-- Left lower route return loop -->
+    <path d="M 212 174
+             L 282 244
+             C 300 262 290 292 266 292
+             L 204 292
+             C 182 292 168 310 168 332"
+          stroke-width="0" />
+
+    <!-- Route Line Path matching official visual -->
+    <path d="M 148 340 
+             V 204 
+             C 148 174 180 156 206 178 
+             L 320 292 
+             C 334 306 358 306 372 292 
+             L 372 172" 
+          stroke-width="24" display="none" />
+  </g>
+
+  <!-- Complete Accurate Trace of NextRide Mobility Logo -->
+  <g fill="none" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Left vertical start to loop -->
+    <path d="M 152 336 V 204 C 152 170 188 152 216 174 L 328 286 C 344 302 368 294 368 270 V 172" />
+    
+    <!-- Central loop and return track -->
+    <path d="M 230 158 C 252 180 274 202 296 224" />
+    <path d="M 252 180 C 274 202 296 224 318 246" />
+    <path d="M 194 250 L 264 320 C 286 342 322 324 322 292 L 322 284" />
+    
+    <!-- Start Node Ring (Bottom Left) -->
+    <circle cx="152" cy="344" r="24" stroke-width="20" fill="none" />
+    
+    <!-- End Node Ring (Top Right) -->
+    <circle cx="368" cy="168" r="24" stroke-width="20" fill="none" />
+  </g>
+</svg>

@@ -1,0 +1,24 @@
+{
+  "short_name": "NextRide",
+  "name": "NextRide — Your next ride, on time, every time",
+  "description": "NextRide is a reliable shared-mobility network for rural and semi-urban communities, focused on predictable routes, dependable departures, and simple booking.",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/nextride-logo.jpg",
+      "type": "image/jpeg",
+      "sizes": "1024x936",
+      "purpose": "maskable any"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#F8FAFC",
+  "theme_color": "#1258D4",
+  "display": "standalone",
+  "orientation": "portrait"
+}
