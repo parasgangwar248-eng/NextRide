@@ -46,38 +46,43 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Logo & Tagline */}
           <div className="flex items-center gap-3">
             <div className="relative group cursor-pointer" onClick={() => setActiveTab('explore')}>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl overflow-hidden shadow-lg shadow-brand-500/25 border-2 border-brand-500/20 group-hover:scale-105 transition-transform duration-200">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl overflow-hidden shadow-md shadow-brand-500/20 border border-slate-200/80 group-hover:scale-105 transition-transform duration-200">
                 <img src="/logo.jpg" alt="NextRide Logo" className="w-full h-full object-cover" />
               </div>
-              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white" title="Online" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white shadow-sm" title="NextRide Live" />
             </div>
             
             <div className="cursor-pointer" onClick={() => setActiveTab('explore')}>
-              <span className="text-lg sm:text-2xl font-black tracking-tight text-slate-900 font-sans">
-                Next<span className="text-brand-600">Ride</span>
-              </span>
-              <p className="text-[10px] sm:text-xs text-slate-500 font-medium tracking-tight hidden xs:block">
+              <div className="flex items-center gap-2">
+                <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 font-sans">
+                  Next<span className="text-brand-600">Ride</span>
+                </span>
+              </div>
+              <p className="text-[11px] sm:text-xs text-brand-700 font-bold tracking-tight">
                 {t.tagline}
               </p>
             </div>
           </div>
 
-          {/* Center Navigation Bar (Strictly Role-Specific) */}
+          {/* Center Aesthetic Dynamic Transit Pill */}
           <div className="hidden md:flex items-center">
             {currentUser?.role === 'driver' ? (
-              <div className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-2xl shadow-sm text-xs font-black">
-                <Car className="w-4 h-4 text-amber-400" />
-                <span>{t.driverPortal} (चालक पोर्टल)</span>
+              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900 text-white shadow-sm text-xs font-black border border-slate-800">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <Car className="w-3.5 h-3.5 text-amber-400" />
+                <span>{t.driverPortal} • Live Driver Partner</span>
               </div>
             ) : currentUser?.role === 'admin' ? (
-              <div className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-slate-950 rounded-2xl shadow-sm text-xs font-black">
+              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500 text-slate-950 shadow-sm text-xs font-black">
                 <ShieldCheck className="w-4 h-4" />
-                <span>NextRide Admin HQ</span>
+                <span>NextRide Super Admin HQ</span>
               </div>
             ) : (
-              <div className="flex items-center gap-2 px-4 py-2 bg-brand-50 border border-brand-200 text-brand-900 rounded-2xl text-xs font-black">
-                <Zap className="w-4 h-4 text-brand-600" />
-                <span>{t.findRide}</span>
+              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-50 border border-slate-200/90 text-slate-700 text-xs font-bold shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>⚡ E-Rickshaws & Autos</span>
+                <span className="text-slate-300 font-light">•</span>
+                <span className="text-brand-600 font-black">{t.tagline}</span>
               </div>
             )}
           </div>
