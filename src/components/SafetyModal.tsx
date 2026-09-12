@@ -45,69 +45,53 @@ export const SafetyModal: React.FC<SafetyModalProps> = ({ isOpen, onClose, lang 
 
         {/* Modal Body */}
         <div className="p-6 space-y-5">
-          {/* SOS Big Button */}
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-3 text-left">
-              <div className="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center shrink-0 shadow-md animate-pulse">
-                <AlertTriangle className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="font-extrabold text-sm text-red-950">{t.emergencyHelpline}</h4>
-                <p className="text-xs text-red-700">Immediate Police & Ambulance response</p>
-              </div>
-            </div>
-            <a
-              href="tel:112"
-              className="w-full sm:w-auto px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-red-500/30 transition-all shrink-0"
-            >
-              <PhoneCall className="w-4 h-4" />
-              <span>Call 112 SOS</span>
-            </a>
-          </div>
-
-          {/* Share Ride with Family Button */}
-          <button
-            onClick={handleShareWhatsApp}
-            className="w-full p-4 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-2xl flex items-center justify-between text-left transition-all group"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md">
-                <Share2 className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="font-extrabold text-sm text-emerald-950">{t.shareWithFamily}</h4>
-                <p className="text-xs text-emerald-700">Send live auto details & driver contact via WhatsApp</p>
-              </div>
-            </div>
-            <span className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold shrink-0">
-              Share
-            </span>
-          </button>
-
-          {/* Safety Pillars */}
-          <div className="space-y-3 pt-2">
-            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">NextRide Safety Standards</h4>
+          {/* Safety Standards */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">
+              {lang === 'hi' ? 'नेक्स्टराइड सुरक्षा मानक' : 'NextRide Safety Standards'}
+            </h4>
             
-            <div className="grid grid-cols-1 gap-2.5">
-              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                <Lock className="w-4 h-4 text-brand-600 shrink-0 mt-0.5" />
-                <p className="text-xs text-slate-700">
-                  <strong>4-Digit Boarding OTP:</strong> The ride will not begin until the driver enters your verified PIN.
-                </p>
+            <div className="grid grid-cols-1 gap-3">
+              <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="w-8 h-8 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <div>
+                  <h5 className="font-extrabold text-xs text-slate-900">
+                    {lang === 'hi' ? '4-अंकों का बोर्डिंग ओटीपी' : '4-Digit Boarding OTP'}
+                  </h5>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    {lang === 'hi' ? 'सवारी तब तक शुरू नहीं होगी जब तक चालक आपका सही पिन दर्ज नहीं करता।' : 'The ride will not begin until the driver enters your verified 4-digit PIN.'}
+                  </p>
+                </div>
               </div>
 
-              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <p className="text-xs text-slate-700">
-                  <strong>100% KYC Verified Drivers:</strong> All e-rickshaw & auto drivers submit valid RC, license & identity documents.
-                </p>
+              <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h5 className="font-extrabold text-xs text-slate-900">
+                    {lang === 'hi' ? '100% सत्यापित चालक साथी' : '100% KYC Verified Drivers'}
+                  </h5>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    {lang === 'hi' ? 'सभी ई-रिक्शा और ऑटो चालक सत्यापन और वैध पहचान पत्र के बाद ही जुड़ते हैं।' : 'All e-rickshaw & auto drivers submit valid RC, license & identity documents.'}
+                  </p>
+                </div>
               </div>
 
-              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                <HeartHandshake className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                <p className="text-xs text-slate-700">
-                  <strong>Fixed Transparent Fares:</strong> Zero midnight surge pricing on rural routes.
-                </p>
+              <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                  <HeartHandshake className="w-4 h-4" />
+                </div>
+                <div>
+                  <h5 className="font-extrabold text-xs text-slate-900">
+                    {lang === 'hi' ? 'पारदर्शी व निश्चित किराया' : 'Fixed Transparent Fares'}
+                  </h5>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    {lang === 'hi' ? 'ग्रामीण मार्गों पर कोई अतिरिक्त सर्ज चार्ज नहीं, केवल उचित किराया।' : 'Zero surge pricing on rural routes, fair standard rates.'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -116,7 +100,7 @@ export const SafetyModal: React.FC<SafetyModalProps> = ({ isOpen, onClose, lang 
             onClick={onClose}
             className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-md transition-all"
           >
-            Close Safety Toolkit
+            {lang === 'hi' ? 'बंद करें (Close)' : 'Close Safety Standards'}
           </button>
         </div>
       </div>

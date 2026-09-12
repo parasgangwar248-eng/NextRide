@@ -349,67 +349,107 @@ export function App() {
         lang={lang}
       />
 
-      {/* Mobile Bottom Navigation Bar (Ola / Uber / Rapido Style) */}
+      {/* Mobile Bottom Navigation Bar (Strictly Role-Specific) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-slate-200 px-2 py-1.5 shadow-2xl flex items-center justify-around">
-        <button
-          onClick={() => {
-            setActiveRole('traveller');
-            setActiveTab('explore');
-          }}
-          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all ${
-            activeRole === 'traveller' && activeTab === 'explore'
-              ? 'text-brand-600 font-black'
-              : 'text-slate-500 font-medium'
-          }`}
-        >
-          <Zap className="w-5 h-5" />
-          <span className="text-[10px]">{t.findRide.split(' ')[0]}</span>
-        </button>
+        {activeRole === 'driver' ? (
+          <>
+            <button
+              onClick={() => {
+                setActiveRole('driver');
+              }}
+              className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl text-brand-600 font-black"
+            >
+              <Car className="w-5 h-5" />
+              <span className="text-[10px]">{t.driverPortal.split(' ')[0]}</span>
+            </button>
 
-        <button
-          onClick={() => {
-            setActiveRole('traveller');
-            setActiveTab('live-map');
-          }}
-          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all ${
-            activeRole === 'traveller' && activeTab === 'live-map'
-              ? 'text-brand-600 font-black'
-              : 'text-slate-500 font-medium'
-          }`}
-        >
-          <Radio className="w-5 h-5" />
-          <span className="text-[10px]">Radar</span>
-        </button>
+            <button
+              onClick={() => {
+                setIsSettingsOpen(true);
+              }}
+              className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl text-slate-600 hover:text-slate-900 font-bold"
+            >
+              <ShieldCheck className="w-5 h-5 text-brand-600" />
+              <span className="text-[10px]">Settings</span>
+            </button>
 
-        <button
-          onClick={() => {
-            setActiveRole('driver');
-          }}
-          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all ${
-            activeRole === 'driver'
-              ? 'text-brand-600 font-black'
-              : 'text-slate-500 font-medium'
-          }`}
-        >
-          <Car className="w-5 h-5" />
-          <span className="text-[10px]">{t.driverPortal.split(' ')[0]}</span>
-        </button>
+            <button
+              onClick={() => setIsSafetyOpen(true)}
+              className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl text-slate-700 font-bold"
+            >
+              <ShieldCheck className="w-5 h-5 text-slate-600" />
+              <span className="text-[10px]">Safety</span>
+            </button>
+          </>
+        ) : activeRole === 'admin' ? (
+          <>
+            <button
+              onClick={() => {
+                setActiveRole('admin');
+              }}
+              className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl text-amber-600 font-black"
+            >
+              <ShieldCheck className="w-5 h-5" />
+              <span className="text-[10px]">Admin HQ</span>
+            </button>
 
-        <button
-          onClick={() => setIsSettingsOpen(true)}
-          className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl text-slate-600 hover:text-slate-900 font-bold"
-        >
-          <ShieldCheck className="w-5 h-5 text-brand-600" />
-          <span className="text-[10px]">Settings</span>
-        </button>
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl text-slate-600 hover:text-slate-900 font-bold"
+            >
+              <ShieldCheck className="w-5 h-5 text-brand-600" />
+              <span className="text-[10px]">Settings</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => {
+                setActiveRole('traveller');
+                setActiveTab('explore');
+              }}
+              className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all ${
+                activeTab === 'explore'
+                  ? 'text-brand-600 font-black'
+                  : 'text-slate-500 font-medium'
+              }`}
+            >
+              <Zap className="w-5 h-5" />
+              <span className="text-[10px]">{t.findRide.split(' ')[0]}</span>
+            </button>
 
-        <button
-          onClick={() => setIsSafetyOpen(true)}
-          className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl text-red-600 font-bold"
-        >
-          <ShieldCheck className="w-5 h-5" />
-          <span className="text-[10px]">SOS 112</span>
-        </button>
+            <button
+              onClick={() => {
+                setActiveRole('traveller');
+                setActiveTab('live-map');
+              }}
+              className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all ${
+                activeTab === 'live-map'
+                  ? 'text-brand-600 font-black'
+                  : 'text-slate-500 font-medium'
+              }`}
+            >
+              <Radio className="w-5 h-5" />
+              <span className="text-[10px]">Radar</span>
+            </button>
+
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl text-slate-600 hover:text-slate-900 font-bold"
+            >
+              <ShieldCheck className="w-5 h-5 text-brand-600" />
+              <span className="text-[10px]">Settings</span>
+            </button>
+
+            <button
+              onClick={() => setIsSafetyOpen(true)}
+              className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl text-slate-700 font-bold"
+            >
+              <ShieldCheck className="w-5 h-5 text-slate-600" />
+              <span className="text-[10px]">Safety</span>
+            </button>
+          </>
+        )}
       </div>
 
       {/* Auth Modal (Create Account / Switch Account) */}

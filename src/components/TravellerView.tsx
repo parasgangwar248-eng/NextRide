@@ -34,6 +34,7 @@ export const TravellerView: React.FC<TravellerViewProps> = ({
   const [selectedMapRoute, setSelectedMapRoute] = useState<SharedRoute | null>(null);
   const [isListening, setIsListening] = useState<'pickup' | 'drop' | null>(null);
   const [voiceToast, setVoiceToast] = useState<string | null>(null);
+  const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
 
   // Voice Search Handler using Web Speech Recognition
   const handleVoiceInput = (target: 'pickup' | 'drop') => {
@@ -564,8 +565,8 @@ export const TravellerView: React.FC<TravellerViewProps> = ({
                       </div>
                       
                       <button
-                        onClick={() => onCancelBooking(b.id)}
-                        className="px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-xl font-bold transition-colors"
+                        onClick={() => setBookingToCancel(b)}
+                        className="px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-xl font-bold transition-colors border border-red-200/60"
                       >
                         {t.cancelRide}
                       </button>
@@ -588,6 +589,52 @@ export const TravellerView: React.FC<TravellerViewProps> = ({
                 </button>
               </div>
             )}
+          </div>
+        )}
+
+        {/* 2-Step Cancel Booking Confirmation Modal */}
+        {bookingToCancel && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-slate-900 shadow-2xl border border-slate-100 text-center space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mx-auto shadow-inner">
+                <Ticket className="w-6 h-6" />
+              </div>
+              
+              <div>
+                <h3 className="text-base font-black text-slate-900">
+                  {lang === 'hi' ? 'सवारी रद्द करना चाहते हैं?' : 'Cancel Ride Booking?'}
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  {lang === 'hi' 
+                    ? `क्या आप वाकई ${bookingToCancel.pickup_point} से ${bookingToCancel.drop_point} की सवारी रद्द करना चाहते हैं?`
+                    : `Are you sure you want to cancel your ride from ${bookingToCancel.pickup_point} to ${bookingToCancel.drop_point}?`}
+                </p>
+                <div className="mt-2 p-2 bg-slate-50 rounded-xl text-xs font-mono font-bold text-slate-700 border border-slate-200">
+                  Booking ID: {bookingToCancel.id} • OTP: {bookingToCancel.otp}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setBookingToCancel(null)}
+                  className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-extrabold transition-all"
+                >
+                  {lang === 'hi' ? 'नहीं, रखें' : 'No, Keep Ride'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onCancelBooking(bookingToCancel.id);
+                    setBookingToCancel(null);
+                  }}
+                  className="py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-extrabold transition-all shadow-md shadow-red-600/30"
+                >
+                  {lang === 'hi' ? 'हाँ, रद्द करें' : 'Yes, Cancel'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
