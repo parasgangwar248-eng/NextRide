@@ -5,7 +5,6 @@ import { RideCard } from './RideCard';
 import { LiveRouteMap } from './LiveRouteMap';
 import { POPULAR_LOCATIONS } from '../lib/mockData';
 import { Search, MapPin, Ticket, ArrowUpDown, Sparkles, Phone, Radio, Zap, Car, Package, Share2, Navigation, CheckCircle2, Mic, MicOff, Volume2 } from 'lucide-react';
-import { InstallPwaButton } from './InstallPwaButton';
 
 interface TravellerViewProps {
   routes: SharedRoute[];
@@ -132,12 +131,7 @@ export const TravellerView: React.FC<TravellerViewProps> = ({
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 pb-20">
-      
-      {/* PWA Mobile Banner */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <InstallPwaButton variant="banner" />
-      </div>
+    <div className="space-y-6 sm:space-y-8 pb-20 pt-4">
 
       {/* Hero Section with Main Tagline & Vertical Search */}
       <section className="relative overflow-hidden bg-gradient-to-br from-brand-900 via-brand-700 to-blue-900 text-white rounded-3xl mx-4 sm:mx-6 lg:mx-8 shadow-2xl p-6 sm:p-10 lg:p-12 border border-brand-500/30">

@@ -50,11 +50,19 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
 
+    const bookingUuid = (typeof crypto !== 'undefined' && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0');
+
+    const travellerUuid = (currentUser?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentUser.id))
+      ? currentUser.id
+      : bookingUuid;
+
     const newBooking: Booking = {
-      id: `NR-${Math.floor(100000 + Math.random() * 900000)}`,
+      id: bookingUuid,
       otp: generatedOtp,
       route_id: route.id,
-      traveller_id: currentUser?.id || `guest-${Date.now()}`,
+      traveller_id: travellerUuid,
       passenger_name: passengerName || 'Passenger',
       passenger_phone: passengerPhone || '+91 98000 00000',
       pickup_point: pickupPoint,

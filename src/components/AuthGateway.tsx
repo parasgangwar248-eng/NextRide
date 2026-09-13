@@ -4,7 +4,6 @@ import { translations } from '../lib/translations';
 import { DEMO_USERS } from '../lib/mockData';
 import { getSupabaseClient } from '../lib/supabaseClient';
 import { Lock, Mail, User, Phone, MapPin, Car, Zap, ArrowRight, Sparkles, Languages, ShieldCheck, Download, Compass, ChevronRight, Eye, EyeOff, KeyRound, CheckCircle2, UserCheck } from 'lucide-react';
-import { InstallPwaButton } from './InstallPwaButton';
 
 interface AuthGatewayProps {
   onLoginSuccess: (user: UserProfile) => void;
@@ -118,15 +117,19 @@ export const AuthGateway: React.FC<AuthGatewayProps> = ({
 
         if (signInErr) {
           // If fallback needed
+          const fallbackUuid = (typeof crypto !== 'undefined' && crypto.randomUUID) 
+            ? crypto.randomUUID() 
+            : '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0');
+
           const newDriver: UserProfile = {
-            id: `drv-${Date.now()}`,
+            id: fallbackUuid,
             email: driverEmail,
-            full_name: driverName || 'Kailash Meena',
-            phone: driverPhone || '+91 99881 77263',
+            full_name: driverName || 'Driver Partner',
+            phone: driverPhone || '',
             role: 'driver',
-            village_town: driverVillage || 'Rampur Village',
-            rating: 4.95,
-            total_trips: 420
+            village_town: driverVillage || 'Rural Hub',
+            rating: 5.0,
+            total_trips: 0
           };
           onLoginSuccess(newDriver);
         } else if (data.user) {
@@ -134,11 +137,11 @@ export const AuthGateway: React.FC<AuthGatewayProps> = ({
             id: data.user.id,
             email: data.user.email || driverEmail,
             full_name: data.user.user_metadata?.full_name || driverName || 'Driver Partner',
-            phone: data.user.user_metadata?.phone || driverPhone || '+91 99881 77263',
+            phone: data.user.user_metadata?.phone || driverPhone || '',
             role: 'driver',
-            village_town: data.user.user_metadata?.village_town || driverVillage || 'Rampur Chowk',
-            rating: 4.95,
-            total_trips: 18
+            village_town: data.user.user_metadata?.village_town || driverVillage || 'Rural Hub',
+            rating: 5.0,
+            total_trips: 0
           };
           onLoginSuccess(driverProfile);
         }
@@ -149,17 +152,21 @@ export const AuthGateway: React.FC<AuthGatewayProps> = ({
         setIsLoading(false);
       }
     } else {
-      // Local demo mode for driver
+      // Local mode for driver
       setTimeout(() => {
+        const localUuid = (typeof crypto !== 'undefined' && crypto.randomUUID) 
+          ? crypto.randomUUID() 
+          : '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0');
+
         const localDriver: UserProfile = {
-          id: `drv-${Date.now()}`,
-          email: `driver.${driverPhone || 'kailash'}@nextride.in`,
-          full_name: driverName || (isSignUp ? driverName : 'Kailash Meena (Driver)'),
-          phone: driverPhone || '+91 99881 77263',
+          id: localUuid,
+          email: `driver.${driverPhone || 'partner'}@nextride.in`,
+          full_name: driverName || 'Driver Partner',
+          phone: driverPhone || '',
           role: 'driver',
-          village_town: driverVillage || 'Rampur Village Chowk',
-          rating: 4.95,
-          total_trips: isSignUp ? 0 : 340
+          village_town: driverVillage || 'Rural Hub',
+          rating: 5.0,
+          total_trips: 0
         };
         setIsLoading(false);
         onLoginSuccess(localDriver);
@@ -305,8 +312,6 @@ export const AuthGateway: React.FC<AuthGatewayProps> = ({
             <Languages className="w-3.5 h-3.5 text-cyan-300" />
             <span>{lang === 'en' ? 'हिंदी' : 'English'}</span>
           </button>
-
-          <InstallPwaButton variant="navbar" />
         </div>
       </header>
 

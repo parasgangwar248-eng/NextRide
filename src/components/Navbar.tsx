@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { UserProfile, UserRole, Language } from '../lib/types';
 import { translations } from '../lib/translations';
-import { InstallPwaButton } from './InstallPwaButton';
 import { Compass, Car, Database, LogOut, User, Menu, X, ShieldCheck, Languages, Zap, AlertTriangle, Settings } from 'lucide-react';
 import { getSavedSupabaseConfig } from '../lib/supabaseClient';
 
@@ -97,9 +96,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               <ShieldCheck className="w-3.5 h-3.5 text-brand-600" />
               <span className="hidden sm:inline">{t.safety}</span>
             </button>
-
-            {/* PWA Install Button */}
-            <InstallPwaButton variant="navbar" />
 
             {/* User Auth & Settings */}
             {currentUser ? (

@@ -92,28 +92,6 @@ export function App() {
     if (!supabase) return;
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profile) {
-          setCurrentUser({
-            id: profile.id,
-            email: session.user.email || '',
-            full_name: profile.full_name || 'User',
-            phone: profile.phone || '',
-            role: profile.role || 'traveller',
-            village_town: profile.village_town || '',
-            rating: profile.rating || 4.95,
-            total_trips: profile.total_trips || 0,
-          });
-        }
-      }
-
       // Fetch all published routes from Supabase database
       const { data: routesData, error: routesError } = await supabase
         .from('routes')
@@ -122,35 +100,46 @@ export function App() {
         .order('created_at', { ascending: false });
 
       if (!routesError && routesData) {
-        const dbRoutes: SharedRoute[] = routesData.map((r: any) => ({
-          id: r.id,
-          driver_id: r.driver_id || 'drv-partner',
-          driver_name: r.driver_name || 'Verified Driver Partner',
-          driver_phone: r.driver_phone || '',
-          driver_rating: Number(r.driver_rating || 4.95),
-          driver_avatar: r.driver_avatar,
-          vehicle_type: r.vehicle_type || 'E-Rickshaw Shared (Toto / Electric)',
-          vehicle_model: r.vehicle_model || 'Mahindra Treo Electric',
-          plate_number: r.plate_number || 'UP-25-ER-0000',
-          origin: r.origin_name || r.origin || '',
-          destination: r.destination_name || r.destination || '',
-          intermediate_stops: Array.isArray(r.intermediate_stops) ? r.intermediate_stops : [],
-          departure_time: r.departure_time || 'Continuous Electric Shuttle',
-          frequency: r.frequency || 'Continuous Electric Shuttle',
-          price_per_seat: Number(r.price_per_seat || 15),
-          full_vehicle_price: Number(r.full_vehicle_price || (r.price_per_seat ? r.price_per_seat * 4 : 60)),
-          available_seats: Number(r.available_seats !== undefined ? r.available_seats : 4),
-          total_seats: Number(r.total_seats || 4),
-          luggage_space: r.luggage_space || 'Handbags & sacks allowed',
-          is_electric: r.is_electric !== false,
-          has_carrier: true,
-          eta_mins: 3,
-          status: 'active',
-          notes: r.notes || '',
-          created_at: r.created_at,
-        }));
+        const dbRoutes: SharedRoute[] = routesData.map((r: any) => {
+          let parsedMeta: any = {};
+          if (r.notes) {
+            try {
+              parsedMeta = JSON.parse(r.notes);
+            } catch {
+              parsedMeta = { original_notes: r.notes };
+            }
+          }
 
-        // Show only real live database routes
+          return {
+            id: r.id,
+            driver_id: r.driver_id || 'drv-partner',
+            driver_name: parsedMeta.driver_name || r.driver_name || 'Verified Driver Partner',
+            driver_phone: parsedMeta.driver_phone || r.driver_phone || '',
+            driver_rating: Number(parsedMeta.driver_rating || r.driver_rating || 4.95),
+            driver_avatar: parsedMeta.driver_avatar || r.driver_avatar,
+            vehicle_type: parsedMeta.vehicle_type || r.vehicle_type || 'E-Rickshaw Shared (Toto / Electric)',
+            vehicle_model: parsedMeta.vehicle_model || r.vehicle_model || 'Mahindra Treo Electric',
+            plate_number: parsedMeta.plate_number || r.plate_number || 'UP-25-ER-0000',
+            origin: r.origin_name || r.origin || '',
+            destination: r.destination_name || r.destination || '',
+            intermediate_stops: Array.isArray(r.intermediate_stops) ? r.intermediate_stops : [],
+            departure_time: r.departure_time || 'Continuous Electric Shuttle',
+            frequency: r.frequency || 'Continuous Electric Shuttle',
+            price_per_seat: Number(r.price_per_seat || 15),
+            full_vehicle_price: Number(parsedMeta.full_vehicle_price || r.full_vehicle_price || (r.price_per_seat ? r.price_per_seat * 4 : 60)),
+            available_seats: Number(r.available_seats !== undefined ? r.available_seats : 4),
+            total_seats: Number(r.total_seats || 4),
+            luggage_space: r.luggage_space || 'Handbags & sacks allowed',
+            is_electric: parsedMeta.is_electric !== undefined ? parsedMeta.is_electric : (r.is_electric !== false),
+            has_carrier: true,
+            eta_mins: 3,
+            status: 'active',
+            notes: parsedMeta.original_notes || (typeof r.notes === 'string' && !r.notes.startsWith('{') ? r.notes : ''),
+            created_at: r.created_at,
+          };
+        });
+
+        // Show live database routes
         setRoutes(dbRoutes);
       }
 
@@ -218,7 +207,13 @@ export function App() {
   };
 
   const handleConfirmBooking = async (newBooking: Booking) => {
-    setBookings((prev) => [newBooking, ...prev]);
+    // Generate valid UUID for booking if not valid
+    const bookingUuid = (newBooking.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(newBooking.id))
+      ? newBooking.id
+      : (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0'));
+
+    const bookingWithUuid = { ...newBooking, id: bookingUuid };
+    setBookings((prev) => [bookingWithUuid, ...prev]);
 
     setRoutes((prev) =>
       prev.map((r) => {
@@ -233,20 +228,25 @@ export function App() {
     const supabase = getSupabaseClient();
     if (supabase) {
       try {
+        let travellerUuid = newBooking.traveller_id;
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(travellerUuid)) {
+          travellerUuid = (currentUser?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentUser.id))
+            ? currentUser.id
+            : '00000000-0000-4000-8000-000000000002';
+        }
+
         await supabase.from('bookings').insert({
-          id: newBooking.id,
-          otp: newBooking.otp,
+          id: bookingUuid,
           route_id: newBooking.route_id,
-          traveller_id: newBooking.traveller_id,
-          seats_booked: newBooking.seats_booked,
-          booking_type: newBooking.booking_type,
-          total_fare: newBooking.total_fare,
+          traveller_id: travellerUuid,
+          passenger_name: newBooking.passenger_name || 'Passenger',
+          passenger_phone: newBooking.passenger_phone || '+91 98000 00000',
           pickup_point: newBooking.pickup_point,
           drop_point: newBooking.drop_point,
-          passenger_name: newBooking.passenger_name,
-          passenger_phone: newBooking.passenger_phone,
-          payment_status: newBooking.payment_status,
+          seats_booked: newBooking.seats_booked || 1,
+          total_fare: newBooking.total_fare,
           status: 'confirmed',
+          payment_status: newBooking.payment_status || 'cash_on_ride',
         });
         fetchSupabaseData();
       } catch (e) {
@@ -284,41 +284,64 @@ export function App() {
   };
 
   const handleAddRoute = async (newRoute: SharedRoute) => {
-    // 1. Immediately add to local state
-    setRoutes((prev) => [newRoute, ...prev]);
+    // Generate valid UUID for route
+    const routeId = (newRoute.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(newRoute.id))
+      ? newRoute.id
+      : (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0'));
 
-    // 2. Write to Supabase database so any phone can search and see it!
+    const routeWithValidId: SharedRoute = { ...newRoute, id: routeId };
+
+    // 1. Immediately add to local state
+    setRoutes((prev) => [routeWithValidId, ...prev.filter(r => r.id !== routeId)]);
+
+    // 2. Write to Supabase database with schema-compatible payload
     const supabase = getSupabaseClient();
     if (supabase) {
       try {
-        const { error } = await supabase.from('routes').insert({
-          id: newRoute.id,
-          driver_id: newRoute.driver_id,
-          driver_name: newRoute.driver_name,
-          driver_phone: newRoute.driver_phone,
-          driver_rating: newRoute.driver_rating,
-          vehicle_type: newRoute.vehicle_type,
-          vehicle_model: newRoute.vehicle_model,
-          plate_number: newRoute.plate_number,
+        let driverUuid = newRoute.driver_id;
+        if (!driverUuid || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(driverUuid)) {
+          driverUuid = (currentUser?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentUser.id))
+            ? currentUser.id
+            : '00000000-0000-4000-8000-000000000001';
+        }
+
+        const metadata = {
+          driver_name: newRoute.driver_name || currentUser?.full_name || 'Driver Partner',
+          driver_phone: newRoute.driver_phone || currentUser?.phone || '',
+          driver_rating: newRoute.driver_rating || currentUser?.rating || 4.95,
+          driver_avatar: newRoute.driver_avatar,
+          vehicle_type: newRoute.vehicle_type || 'E-Rickshaw Shared (Toto / Electric)',
+          vehicle_model: newRoute.vehicle_model || 'Mahindra Treo Electric',
+          plate_number: newRoute.plate_number || 'UP-25-ER-0000',
+          full_vehicle_price: newRoute.full_vehicle_price || (newRoute.price_per_seat ? newRoute.price_per_seat * 4 : 60),
+          is_electric: newRoute.is_electric !== false,
+          original_notes: newRoute.notes || '',
+        };
+
+        const { data, error } = await supabase.from('routes').insert({
+          id: routeId,
+          driver_id: driverUuid,
           origin_name: newRoute.origin,
           destination_name: newRoute.destination,
           intermediate_stops: newRoute.intermediate_stops || [],
-          departure_time: newRoute.departure_time,
-          price_per_seat: newRoute.price_per_seat,
-          full_vehicle_price: newRoute.full_vehicle_price || newRoute.price_per_seat * 4,
-          available_seats: newRoute.available_seats,
-          total_seats: newRoute.total_seats,
-          is_electric: newRoute.is_electric !== false,
+          departure_time: newRoute.departure_time || 'Continuous Electric Shuttle',
+          frequency: newRoute.frequency || 'Continuous Electric Shuttle',
+          price_per_seat: newRoute.price_per_seat || 15,
+          available_seats: newRoute.available_seats || 4,
+          total_seats: newRoute.total_seats || 4,
+          luggage_space: newRoute.luggage_space || 'Handbags & sacks allowed',
           status: 'active',
-        });
+          notes: JSON.stringify(metadata),
+        }).select();
 
         if (error) {
-          console.warn('Supabase route insert notice:', error.message);
+          console.error('Supabase route insert notice:', error);
         } else {
+          console.log('Supabase route published successfully:', data);
           fetchSupabaseData();
         }
       } catch (e) {
-        console.error('Supabase route post:', e);
+        console.error('Supabase route post exception:', e);
       }
     }
   };

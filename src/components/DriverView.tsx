@@ -66,16 +66,20 @@ export const DriverView: React.FC<DriverViewProps> = ({
       return;
     }
 
+    const routeUuid = (typeof crypto !== 'undefined' && crypto.randomUUID) 
+      ? crypto.randomUUID() 
+      : '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0');
+
     const newRouteObj: SharedRoute = {
-      id: `rt-${Date.now()}`,
-      driver_id: currentUser?.id || 'demo-driver',
-      driver_name: currentUser?.full_name || 'Kailash Meena',
-      driver_phone: currentUser?.phone || '+91 99881 77263',
+      id: routeUuid,
+      driver_id: currentUser?.id || routeUuid,
+      driver_name: currentUser?.full_name || 'Driver Partner',
+      driver_phone: currentUser?.phone || '',
       driver_rating: currentUser?.rating || 4.95,
       driver_avatar: currentUser?.avatar_url,
       vehicle_type: vehicleType,
       vehicle_model: vehicleModel || 'E-Rickshaw Toto',
-      plate_number: plateNumber || 'DL-5E-AR-9901',
+      plate_number: plateNumber || 'UP-25-ER-0000',
       origin: origin,
       destination: destination,
       intermediate_stops: intermediateStops,
