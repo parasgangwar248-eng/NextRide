@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { UserProfile, UserRole, SharedRoute, Booking, Language } from './lib/types';
-import { INITIAL_ROUTES } from './lib/mockData';
 import { getSupabaseClient } from './lib/supabaseClient';
 import { Navbar } from './components/Navbar';
 import { TravellerView } from './components/TravellerView';
@@ -16,10 +15,10 @@ import { Footer } from './components/Footer';
 import { Zap, Radio, Ticket, Car, ShieldCheck } from 'lucide-react';
 import { translations } from './lib/translations';
 
-const STORAGE_ROUTES_KEY = 'nextride_routes_v2';
-const STORAGE_BOOKINGS_KEY = 'nextride_bookings_v2';
-const STORAGE_USER_KEY = 'nextride_user_v2';
-const STORAGE_LANG_KEY = 'nextride_lang_v2';
+const STORAGE_ROUTES_KEY = 'nextride_routes_v3';
+const STORAGE_BOOKINGS_KEY = 'nextride_bookings_v3';
+const STORAGE_USER_KEY = 'nextride_user_v3';
+const STORAGE_LANG_KEY = 'nextride_lang_v3';
 
 export function App() {
   // Language (English or Hindi)
@@ -52,34 +51,16 @@ export function App() {
   // Active Tab
   const [activeTab, setActiveTab] = useState<'explore' | 'bookings' | 'live-map' | 'driver-routes' | 'driver-post'>('explore');
 
-  // Shared Routes state (E-Rickshaws & Autos)
+  // Shared Routes state (Real published routes only)
   const [routes, setRoutes] = useState<SharedRoute[]>(() => {
     const saved = localStorage.getItem(STORAGE_ROUTES_KEY);
-    return saved ? JSON.parse(saved) : INITIAL_ROUTES;
+    return saved ? JSON.parse(saved) : [];
   });
 
   // Bookings state
   const [bookings, setBookings] = useState<Booking[]>(() => {
     const saved = localStorage.getItem(STORAGE_BOOKINGS_KEY);
-    return saved ? JSON.parse(saved) : [
-      {
-        id: 'NR-849201',
-        otp: '4891',
-        route_id: 'route-e101',
-        traveller_id: 'traveller-1',
-        passenger_name: 'Anita Sharma',
-        passenger_phone: '+91 97112 33445',
-        pickup_point: 'Rampur Village Chowk',
-        drop_point: 'Krishi Mandi & Tehsil Hub',
-        seats_booked: 2,
-        booking_type: 'shared_seat',
-        total_fare: 30,
-        status: 'confirmed',
-        payment_status: 'cash_on_ride',
-        created_at: new Date().toISOString(),
-        route: INITIAL_ROUTES[0],
-      }
-    ];
+    return saved ? JSON.parse(saved) : [];
   });
 
   // Modals
@@ -140,19 +121,19 @@ export function App() {
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
-      if (!routesError && routesData && routesData.length > 0) {
+      if (!routesError && routesData) {
         const dbRoutes: SharedRoute[] = routesData.map((r: any) => ({
           id: r.id,
           driver_id: r.driver_id || 'drv-partner',
           driver_name: r.driver_name || 'Verified Driver Partner',
-          driver_phone: r.driver_phone || '+91 99881 77263',
+          driver_phone: r.driver_phone || '',
           driver_rating: Number(r.driver_rating || 4.95),
           driver_avatar: r.driver_avatar,
           vehicle_type: r.vehicle_type || 'E-Rickshaw Shared (Toto / Electric)',
           vehicle_model: r.vehicle_model || 'Mahindra Treo Electric',
           plate_number: r.plate_number || 'UP-25-ER-0000',
-          origin: r.origin_name || r.origin || 'Rampur Chowk',
-          destination: r.destination_name || r.destination || 'Krishi Mandi',
+          origin: r.origin_name || r.origin || '',
+          destination: r.destination_name || r.destination || '',
           intermediate_stops: Array.isArray(r.intermediate_stops) ? r.intermediate_stops : [],
           departure_time: r.departure_time || 'Continuous Electric Shuttle',
           frequency: r.frequency || 'Continuous Electric Shuttle',
@@ -169,10 +150,8 @@ export function App() {
           created_at: r.created_at,
         }));
 
-        // Merge database routes at the top, followed by mock routes without duplicates
-        const dbRouteIds = new Set(dbRoutes.map(r => r.id));
-        const remainingMock = INITIAL_ROUTES.filter(r => !dbRouteIds.has(r.id));
-        setRoutes([...dbRoutes, ...remainingMock]);
+        // Show only real live database routes
+        setRoutes(dbRoutes);
       }
 
       // Fetch live bookings
@@ -181,7 +160,7 @@ export function App() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (bookingsData && bookingsData.length > 0) {
+      if (bookingsData) {
         setBookings(bookingsData);
       }
     } catch (err) {
@@ -344,8 +323,16 @@ export function App() {
     }
   };
 
-  const handleDeleteRoute = (routeId: string) => {
+  const handleDeleteRoute = async (routeId: string) => {
     setRoutes((prev) => prev.filter((r) => r.id !== routeId));
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase.from('routes').delete().eq('id', routeId);
+      } catch (e) {
+        console.log('Delete route error:', e);
+      }
+    }
   };
 
   // If user is not logged in and not in guest mode, show the Login Page first!

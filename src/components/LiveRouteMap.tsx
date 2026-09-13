@@ -23,6 +23,10 @@ export const LiveRouteMap: React.FC<LiveRouteMapProps> = ({
   const [activeMarkerId, setActiveMarkerId] = useState<string | null>(selectedRoute?.id || null);
 
   useEffect(() => {
+    setVehicles(routes);
+  }, [routes]);
+
+  useEffect(() => {
     if (selectedRoute) {
       setActiveMarkerId(selectedRoute.id);
     }
@@ -109,6 +113,17 @@ export const LiveRouteMap: React.FC<LiveRouteMapProps> = ({
           <MapPin className="w-3 h-3 text-amber-400" /> Railway Jn.
         </div>
 
+        {/* Empty Radar State */}
+        {vehicles.length === 0 && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-10 pointer-events-none">
+            <div className="w-12 h-12 rounded-full bg-brand-500/20 border border-brand-400/30 flex items-center justify-center mb-2 animate-pulse">
+              <Radio className="w-6 h-6 text-brand-400" />
+            </div>
+            <p className="text-xs font-bold text-slate-300">Live GPS Radar Scanning...</p>
+            <p className="text-[11px] text-slate-500 max-w-xs mt-0.5">No active drivers online yet in this area. Drivers can publish a route to appear live on the radar map.</p>
+          </div>
+        )}
+
         {/* Moving Auto & E-Rickshaw Markers */}
         {vehicles.map((v) => {
           const isSelected = v.id === activeMarkerId;
@@ -164,7 +179,7 @@ export const LiveRouteMap: React.FC<LiveRouteMapProps> = ({
       </div>
 
       {/* Bottom Selected Auto Details Card */}
-      {activeVehicle && (
+      {activeVehicle && vehicles.length > 0 && (
         <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-brand-950 to-slate-900 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-white/10 p-2.5 flex items-center justify-center border border-white/20 shrink-0">

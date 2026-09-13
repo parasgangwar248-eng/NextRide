@@ -113,10 +113,12 @@ export const DriverView: React.FC<DriverViewProps> = ({
   };
 
   // Driver metrics
-  const isDemoDriver = currentUser?.email === 'kailash@nextride.in' || currentUser?.id === 'demo-driver-01';
-  const driverRoutes = routes.filter(r => currentUser && (r.driver_id === currentUser.id || (isDemoDriver && r.driver_id.includes('driver'))));
+  const driverRoutes = routes.filter(r => currentUser && (
+    r.driver_id === currentUser.id ||
+    (currentUser.phone && r.driver_phone && r.driver_phone === currentUser.phone)
+  ));
   const relevantBookings = bookings.filter(b => driverRoutes.some(r => r.id === b.route_id));
-  const totalRevenue = relevantBookings.reduce((sum, b) => sum + (b.total_fare || 0), 0) + (isDemoDriver ? 480 : 0);
+  const totalRevenue = relevantBookings.reduce((sum, b) => sum + (b.total_fare || 0), 0);
   const targetGoal = 800;
   const progressPercent = Math.min(100, Math.round((totalRevenue / targetGoal) * 100));
 
