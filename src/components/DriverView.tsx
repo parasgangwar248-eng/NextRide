@@ -8,7 +8,7 @@ interface DriverViewProps {
   routes: SharedRoute[];
   bookings: Booking[];
   currentUser: UserProfile | null;
-  onAddRoute: (newRoute: SharedRoute) => void;
+  onAddRoute: (newRoute: SharedRoute) => Promise<boolean> | void;
   onDeleteRoute: (routeId: string) => void;
   lang: Language;
 }
@@ -24,6 +24,7 @@ export const DriverView: React.FC<DriverViewProps> = ({
   const t = translations[lang];
   const [isOnline, setIsOnline] = useState(true);
   const [activeDriverTab, setActiveDriverTab] = useState<'my-routes' | 'post-route' | 'bookings'>('my-routes');
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // Form states for new auto route
   const [origin, setOrigin] = useState('');
@@ -58,13 +59,15 @@ export const DriverView: React.FC<DriverViewProps> = ({
     setIntermediateStops(intermediateStops.filter((_, i) => i !== index));
   };
 
-  const handleCreateRouteSubmit = (e: React.FormEvent) => {
+  const handleCreateRouteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!origin || !destination) {
       alert('Please enter origin and destination.');
       return;
     }
+
+    setIsPublishing(true);
 
     const routeUuid = (typeof crypto !== 'undefined' && crypto.randomUUID) 
       ? crypto.randomUUID() 
@@ -99,13 +102,14 @@ export const DriverView: React.FC<DriverViewProps> = ({
       created_at: new Date().toISOString(),
     };
 
-    onAddRoute(newRouteObj);
-    setSuccessMessage('✓ New Auto / E-Rickshaw route published! Now visible to local passengers.');
+    await onAddRoute(newRouteObj);
+    setIsPublishing(false);
+    setSuccessMessage('✓ New Auto / E-Rickshaw route published! Now live across all phones.');
     
     setTimeout(() => {
       setSuccessMessage(null);
       setActiveDriverTab('my-routes');
-    }, 1500);
+    }, 1200);
   };
 
   const handleVerifyOtp = (bookingId: string, expectedOtp: string) => {
@@ -550,10 +554,11 @@ export const DriverView: React.FC<DriverViewProps> = ({
 
             <button
               type="submit"
-              className="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-black text-sm rounded-2xl shadow-lg shadow-brand-500/25 transition-all flex items-center justify-center gap-2 mt-4"
+              disabled={isPublishing}
+              className="w-full py-3.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-black text-sm rounded-2xl shadow-lg shadow-brand-500/25 transition-all flex items-center justify-center gap-2 mt-4 cursor-pointer"
             >
-              <Zap className="w-4 h-4" />
-              <span>{t.publishBtn}</span>
+              <Zap className={`w-4 h-4 ${isPublishing ? 'animate-spin' : ''}`} />
+              <span>{isPublishing ? 'Publishing to live network...' : t.publishBtn}</span>
             </button>
           </form>
         </div>

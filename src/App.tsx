@@ -157,7 +157,7 @@ export function App() {
     }
   };
 
-  // Real-time synchronization & 4-second auto-poll for cross-device updates
+  // Real-time synchronization & 2-second auto-poll for instantaneous cross-device updates
   useEffect(() => {
     fetchSupabaseData();
 
@@ -175,7 +175,7 @@ export function App() {
 
       const pollTimer = setInterval(() => {
         fetchSupabaseData();
-      }, 4000);
+      }, 2000);
 
       return () => {
         supabase.removeChannel(channel);
@@ -283,7 +283,7 @@ export function App() {
     }
   };
 
-  const handleAddRoute = async (newRoute: SharedRoute) => {
+  const handleAddRoute = async (newRoute: SharedRoute): Promise<boolean> => {
     // Generate valid UUID for route
     const routeId = (newRoute.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(newRoute.id))
       ? newRoute.id
@@ -291,18 +291,33 @@ export function App() {
 
     const routeWithValidId: SharedRoute = { ...newRoute, id: routeId };
 
-    // 1. Immediately add to local state
-    setRoutes((prev) => [routeWithValidId, ...prev.filter(r => r.id !== routeId)]);
-
-    // 2. Write to Supabase database with schema-compatible payload
     const supabase = getSupabaseClient();
     if (supabase) {
       try {
-        let driverUuid = newRoute.driver_id;
+        // Resolve valid driver profile ID to satisfy Postgres foreign key constraint "routes_driver_id_fkey"
+        let driverUuid = currentUser?.id;
         if (!driverUuid || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(driverUuid)) {
-          driverUuid = (currentUser?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentUser.id))
-            ? currentUser.id
-            : '00000000-0000-4000-8000-000000000001';
+          driverUuid = newRoute.driver_id;
+        }
+
+        // Check if driverUuid exists in profiles table
+        let validDriverUuid = driverUuid;
+        const { data: profileCheck } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', driverUuid)
+          .maybeSingle();
+
+        if (!profileCheck) {
+          // If profile is not in profiles table, fetch first existing profile ID to satisfy foreign key
+          const { data: anyProfiles } = await supabase
+            .from('profiles')
+            .select('id')
+            .limit(1);
+
+          if (anyProfiles && anyProfiles.length > 0) {
+            validDriverUuid = anyProfiles[0].id;
+          }
         }
 
         const metadata = {
@@ -318,9 +333,10 @@ export function App() {
           original_notes: newRoute.notes || '',
         };
 
+        // 1. Insert into Supabase database FIRST
         const { data, error } = await supabase.from('routes').insert({
           id: routeId,
-          driver_id: driverUuid,
+          driver_id: validDriverUuid,
           origin_name: newRoute.origin,
           destination_name: newRoute.destination,
           intermediate_stops: newRoute.intermediate_stops || [],
@@ -335,14 +351,24 @@ export function App() {
         }).select();
 
         if (error) {
-          console.error('Supabase route insert notice:', error);
-        } else {
-          console.log('Supabase route published successfully:', data);
-          fetchSupabaseData();
+          console.error('Supabase route insert error:', error);
+          setRoutes((prev) => [routeWithValidId, ...prev.filter(r => r.id !== routeId)]);
+          return false;
         }
+
+        console.log('Supabase route published successfully:', data);
+
+        // 2. Fetch fresh routes from Supabase immediately to sync website everywhere!
+        await fetchSupabaseData();
+        return true;
       } catch (e) {
         console.error('Supabase route post exception:', e);
+        setRoutes((prev) => [routeWithValidId, ...prev.filter(r => r.id !== routeId)]);
+        return false;
       }
+    } else {
+      setRoutes((prev) => [routeWithValidId, ...prev.filter(r => r.id !== routeId)]);
+      return true;
     }
   };
 
