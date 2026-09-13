@@ -105,7 +105,7 @@ export function App() {
     }
   }, [currentUser]);
 
-  // Load from Supabase if connected
+  // Load from Supabase with live multi-device synchronization
   const fetchSupabaseData = async () => {
     const supabase = getSupabaseClient();
     if (!supabase) return;
@@ -127,51 +127,93 @@ export function App() {
             phone: profile.phone || '',
             role: profile.role || 'traveller',
             village_town: profile.village_town || '',
-            rating: profile.rating || 4.9,
+            rating: profile.rating || 4.95,
             total_trips: profile.total_trips || 0,
           });
         }
       }
 
+      // Fetch all published routes from Supabase database
       const { data: routesData, error: routesError } = await supabase
         .from('routes')
         .select('*')
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
 
       if (!routesError && routesData && routesData.length > 0) {
-        const mappedRoutes: SharedRoute[] = routesData.map((r: any) => ({
+        const dbRoutes: SharedRoute[] = routesData.map((r: any) => ({
           id: r.id,
-          driver_id: r.driver_id,
-          driver_name: r.driver_name || 'Verified Driver',
-          driver_phone: r.driver_phone || '+91 98000 00000',
-          driver_rating: 4.9,
+          driver_id: r.driver_id || 'drv-partner',
+          driver_name: r.driver_name || 'Verified Driver Partner',
+          driver_phone: r.driver_phone || '+91 99881 77263',
+          driver_rating: Number(r.driver_rating || 4.95),
+          driver_avatar: r.driver_avatar,
           vehicle_type: r.vehicle_type || 'E-Rickshaw Shared (Toto / Electric)',
           vehicle_model: r.vehicle_model || 'Mahindra Treo Electric',
-          plate_number: r.plate_number || 'DL-5E-AR-0000',
-          origin: r.origin_name || r.origin,
-          destination: r.destination_name || r.destination,
-          intermediate_stops: r.intermediate_stops || [],
-          departure_time: r.departure_time,
-          frequency: r.frequency || 'Continuous',
-          price_per_seat: Number(r.price_per_seat),
-          full_vehicle_price: Number(r.full_vehicle_price || r.price_per_seat * 4),
-          available_seats: Number(r.available_seats),
+          plate_number: r.plate_number || 'UP-25-ER-0000',
+          origin: r.origin_name || r.origin || 'Rampur Chowk',
+          destination: r.destination_name || r.destination || 'Krishi Mandi',
+          intermediate_stops: Array.isArray(r.intermediate_stops) ? r.intermediate_stops : [],
+          departure_time: r.departure_time || 'Continuous Electric Shuttle',
+          frequency: r.frequency || 'Continuous Electric Shuttle',
+          price_per_seat: Number(r.price_per_seat || 15),
+          full_vehicle_price: Number(r.full_vehicle_price || (r.price_per_seat ? r.price_per_seat * 4 : 60)),
+          available_seats: Number(r.available_seats !== undefined ? r.available_seats : 4),
           total_seats: Number(r.total_seats || 4),
-          luggage_space: r.luggage_space || 'Allowed',
-          is_electric: (r.vehicle_type || '').includes('E-Rickshaw'),
+          luggage_space: r.luggage_space || 'Handbags & sacks allowed',
+          is_electric: r.is_electric !== false,
           has_carrier: true,
           eta_mins: 3,
           status: 'active',
+          notes: r.notes || '',
+          created_at: r.created_at,
         }));
-        setRoutes(mappedRoutes);
+
+        // Merge database routes at the top, followed by mock routes without duplicates
+        const dbRouteIds = new Set(dbRoutes.map(r => r.id));
+        const remainingMock = INITIAL_ROUTES.filter(r => !dbRouteIds.has(r.id));
+        setRoutes([...dbRoutes, ...remainingMock]);
+      }
+
+      // Fetch live bookings
+      const { data: bookingsData } = await supabase
+        .from('bookings')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (bookingsData && bookingsData.length > 0) {
+        setBookings(bookingsData);
       }
     } catch (err) {
       console.log('Supabase sync:', err);
     }
   };
 
+  // Real-time synchronization & 4-second auto-poll for cross-device updates
   useEffect(() => {
     fetchSupabaseData();
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const channel = supabase
+        .channel('public:transit_sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, () => {
+          fetchSupabaseData();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
+          fetchSupabaseData();
+        })
+        .subscribe();
+
+      const pollTimer = setInterval(() => {
+        fetchSupabaseData();
+      }, 4000);
+
+      return () => {
+        supabase.removeChannel(channel);
+        clearInterval(pollTimer);
+      };
+    }
   }, []);
 
   const handleLoginSuccess = (user: UserProfile) => {
@@ -213,9 +255,12 @@ export function App() {
     if (supabase) {
       try {
         await supabase.from('bookings').insert({
+          id: newBooking.id,
+          otp: newBooking.otp,
           route_id: newBooking.route_id,
           traveller_id: newBooking.traveller_id,
           seats_booked: newBooking.seats_booked,
+          booking_type: newBooking.booking_type,
           total_fare: newBooking.total_fare,
           pickup_point: newBooking.pickup_point,
           drop_point: newBooking.drop_point,
@@ -224,13 +269,14 @@ export function App() {
           payment_status: newBooking.payment_status,
           status: 'confirmed',
         });
+        fetchSupabaseData();
       } catch (e) {
         console.error('Supabase booking save:', e);
       }
     }
   };
 
-  const handleCancelBooking = (bookingId: string) => {
+  const handleCancelBooking = async (bookingId: string) => {
     const bookingToCancel = bookings.find(b => b.id === bookingId);
     if (bookingToCancel) {
       // Restock seats
@@ -247,26 +293,51 @@ export function App() {
       );
     }
     setBookings((prev) => prev.filter((b) => b.id !== bookingId));
-  };
-
-  const handleAddRoute = async (newRoute: SharedRoute) => {
-    setRoutes((prev) => [newRoute, ...prev]);
 
     const supabase = getSupabaseClient();
     if (supabase) {
       try {
-        await supabase.from('routes').insert({
+        await supabase.from('bookings').delete().eq('id', bookingId);
+      } catch (e) {
+        console.log('Cancel sync error:', e);
+      }
+    }
+  };
+
+  const handleAddRoute = async (newRoute: SharedRoute) => {
+    // 1. Immediately add to local state
+    setRoutes((prev) => [newRoute, ...prev]);
+
+    // 2. Write to Supabase database so any phone can search and see it!
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        const { error } = await supabase.from('routes').insert({
+          id: newRoute.id,
           driver_id: newRoute.driver_id,
+          driver_name: newRoute.driver_name,
+          driver_phone: newRoute.driver_phone,
+          driver_rating: newRoute.driver_rating,
+          vehicle_type: newRoute.vehicle_type,
+          vehicle_model: newRoute.vehicle_model,
+          plate_number: newRoute.plate_number,
           origin_name: newRoute.origin,
           destination_name: newRoute.destination,
-          intermediate_stops: newRoute.intermediate_stops,
+          intermediate_stops: newRoute.intermediate_stops || [],
           departure_time: newRoute.departure_time,
           price_per_seat: newRoute.price_per_seat,
+          full_vehicle_price: newRoute.full_vehicle_price || newRoute.price_per_seat * 4,
           available_seats: newRoute.available_seats,
           total_seats: newRoute.total_seats,
-          vehicle_type: newRoute.vehicle_type,
+          is_electric: newRoute.is_electric !== false,
           status: 'active',
         });
+
+        if (error) {
+          console.warn('Supabase route insert notice:', error.message);
+        } else {
+          fetchSupabaseData();
+        }
       } catch (e) {
         console.error('Supabase route post:', e);
       }

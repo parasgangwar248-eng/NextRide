@@ -43,46 +43,34 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           
-          {/* Logo & Tagline */}
-          <div className="flex items-center gap-3">
+          {/* Logo & Clean Brand Name */}
+          <div className="flex items-center gap-2.5">
             <div className="relative group cursor-pointer" onClick={() => setActiveTab('explore')}>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl overflow-hidden shadow-md shadow-brand-500/20 border border-slate-200/80 group-hover:scale-105 transition-transform duration-200">
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl overflow-hidden shadow-sm border border-slate-200/80 group-hover:scale-105 transition-transform duration-200">
                 <img src="/logo.jpg" alt="NextRide Logo" className="w-full h-full object-cover" />
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white shadow-sm" title="NextRide Live" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white shadow-sm" title="NextRide Live" />
             </div>
             
             <div className="cursor-pointer" onClick={() => setActiveTab('explore')}>
-              <div className="flex items-center gap-2">
-                <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 font-sans">
-                  Next<span className="text-brand-600">Ride</span>
-                </span>
-              </div>
-              <p className="text-[11px] sm:text-xs text-brand-700 font-bold tracking-tight">
-                {t.tagline}
-              </p>
+              <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 font-sans">
+                Next<span className="text-brand-600">Ride</span>
+              </span>
             </div>
           </div>
 
-          {/* Center Aesthetic Dynamic Transit Pill */}
+          {/* Center Role Indicator (Minimal & Clean) */}
           <div className="hidden md:flex items-center">
-            {currentUser?.role === 'driver' ? (
-              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900 text-white shadow-sm text-xs font-black border border-slate-800">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            {currentUser?.role === 'driver' && (
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 text-white shadow-sm text-xs font-black border border-slate-800">
                 <Car className="w-3.5 h-3.5 text-amber-400" />
-                <span>{t.driverPortal} • Live Driver Partner</span>
+                <span>Driver Partner</span>
               </div>
-            ) : currentUser?.role === 'admin' ? (
-              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500 text-slate-950 shadow-sm text-xs font-black">
+            )}
+            {currentUser?.role === 'admin' && (
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500 text-slate-950 shadow-sm text-xs font-black">
                 <ShieldCheck className="w-4 h-4" />
-                <span>NextRide Super Admin HQ</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-50 border border-slate-200/90 text-slate-700 text-xs font-bold shadow-sm">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>⚡ E-Rickshaws & Autos</span>
-                <span className="text-slate-300 font-light">•</span>
-                <span className="text-brand-600 font-black">{t.tagline}</span>
+                <span>Admin HQ</span>
               </div>
             )}
           </div>

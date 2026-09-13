@@ -166,27 +166,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {lang === 'hi' ? 'प्राथमिकताएं' : 'Preferences'}
             </h4>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="pt-1">
               <button
                 onClick={onToggleLang}
-                className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 text-left transition-all flex items-center justify-between"
+                className="w-full p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 text-left transition-all flex items-center justify-between"
               >
                 <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4 text-brand-600" />
-                  <span className="text-xs font-bold">{lang === 'en' ? 'हिंदी भाषा' : 'English'}</span>
-                </div>
-              </button>
-
-              <button
-                onClick={() => {
-                  onClose();
-                  onOpenSupabaseGuide();
-                }}
-                className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 text-left transition-all flex items-center justify-between"
-              >
-                <div className="flex items-center gap-2">
-                  <Database className="w-4 h-4 text-emerald-600" />
-                  <span className="text-xs font-bold">Supabase DB</span>
+                  <span className="text-xs font-bold">{lang === 'en' ? 'Switch to हिंदी (Hindi)' : 'Switch to English'}</span>
                 </div>
               </button>
             </div>

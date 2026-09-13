@@ -113,9 +113,12 @@ export const DriverView: React.FC<DriverViewProps> = ({
   };
 
   // Driver metrics
-  const driverRoutes = routes.filter(r => !currentUser || r.driver_id === currentUser.id || r.driver_id.includes('driver'));
+  const isDemoDriver = currentUser?.email === 'kailash@nextride.in' || currentUser?.id === 'demo-driver-01';
+  const driverRoutes = routes.filter(r => currentUser && (r.driver_id === currentUser.id || (isDemoDriver && r.driver_id.includes('driver'))));
   const relevantBookings = bookings.filter(b => driverRoutes.some(r => r.id === b.route_id));
-  const totalRevenue = relevantBookings.reduce((sum, b) => sum + (b.total_fare || 0), 0) + 480;
+  const totalRevenue = relevantBookings.reduce((sum, b) => sum + (b.total_fare || 0), 0) + (isDemoDriver ? 480 : 0);
+  const targetGoal = 800;
+  const progressPercent = Math.min(100, Math.round((totalRevenue / targetGoal) * 100));
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 sm:space-y-8 pb-20">
@@ -142,7 +145,7 @@ export const DriverView: React.FC<DriverViewProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-xl sm:text-2xl font-black">
-                  {currentUser?.full_name || 'Kailash Meena'}
+                  {currentUser?.full_name || 'Driver Partner'}
                 </h2>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
                   {t.verifiedDriver}
@@ -172,15 +175,18 @@ export const DriverView: React.FC<DriverViewProps> = ({
         <div className="mt-6 pt-6 border-t border-white/15">
           <div className="flex items-center justify-between text-xs font-bold mb-2">
             <span className="text-blue-200">{t.targetProgress}</span>
-            <span className="text-emerald-400 font-extrabold">₹{totalRevenue} / ₹800 (60%)</span>
+            <span className="text-emerald-400 font-extrabold">₹{totalRevenue} / ₹{targetGoal} ({progressPercent}%)</span>
           </div>
           <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden p-0.5">
-            <div className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 rounded-full w-[60%]" />
+            <div 
+              className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 rounded-full transition-all duration-500" 
+              style={{ width: `${Math.max(3, progressPercent)}%` }}
+            />
           </div>
         </div>
 
-        {/* Driver Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+        {/* Driver Quick Stats Row */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
           <div className="bg-white/5 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
             <p className="text-[10px] uppercase font-extrabold tracking-wider text-blue-200">{t.dailyEarnings}</p>
             <p className="text-xl sm:text-2xl font-black text-emerald-400 mt-1">₹{totalRevenue}</p>
@@ -188,17 +194,21 @@ export const DriverView: React.FC<DriverViewProps> = ({
 
           <div className="bg-white/5 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
             <p className="text-[10px] uppercase font-extrabold tracking-wider text-blue-200">{t.tripsCompleted}</p>
-            <p className="text-xl sm:text-2xl font-black text-white mt-1">14</p>
+            <p className="text-xl sm:text-2xl font-black text-white mt-1">
+              {currentUser?.total_trips !== undefined && currentUser.total_trips > 0 
+                ? currentUser.total_trips 
+                : relevantBookings.filter(b => b.status === 'completed').length}
+            </p>
           </div>
 
           <div className="bg-white/5 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
             <p className="text-[10px] uppercase font-extrabold tracking-wider text-blue-200">{t.passengerRequests}</p>
-            <p className="text-xl sm:text-2xl font-black text-amber-300 mt-1">{relevantBookings.length + 3}</p>
+            <p className="text-xl sm:text-2xl font-black text-amber-300 mt-1">{relevantBookings.length}</p>
           </div>
 
           <div className="bg-white/5 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
             <p className="text-[10px] uppercase font-extrabold tracking-wider text-blue-200">{t.driverRating}</p>
-            <p className="text-xl sm:text-2xl font-black text-yellow-300 mt-1">⭐ 4.95</p>
+            <p className="text-xl sm:text-2xl font-black text-yellow-300 mt-1">⭐ {currentUser?.rating || 5.0}</p>
           </div>
         </div>
       </div>
