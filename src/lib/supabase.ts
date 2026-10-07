@@ -106,24 +106,6 @@ export async function joinWaitingList(
   // 2. If Supabase is connected, try Supabase insert
   if (supabase) {
     try {
-      // Check duplicate on Supabase
-      const { data: existing, error: checkError } = await supabase
-        .from('waiting_list')
-        .select('id, full_name, mobile_number, created_at')
-        .eq('mobile_number', normalizedPhone)
-        .maybeSingle();
-
-      if (!checkError && existing) {
-        return {
-          success: true,
-          isDuplicate: true,
-          message: 'You’re already on the list! We have your spot reserved.',
-          entry: existing as WaitingListEntry,
-          storageType: 'supabase',
-        };
-      }
-
-      // Insert new row
       const { data, error: insertError } = await supabase
         .from('waiting_list')
         .insert([
@@ -140,6 +122,22 @@ export async function joinWaitingList(
         .single();
 
       if (insertError) {
+        // PostgreSQL unique violation error code 23505
+        if (
+          insertError.code === '23505' ||
+          insertError.message?.toLowerCase().includes('unique') ||
+          insertError.message?.toLowerCase().includes('duplicate')
+        ) {
+          saveLocalEntry(newEntry);
+          return {
+            success: true,
+            isDuplicate: true,
+            message: 'You’re already on the list! We have your spot reserved.',
+            entry: newEntry,
+            storageType: 'supabase',
+          };
+        }
+
         console.warn('Supabase insert issue, caching locally:', insertError.message);
         saveLocalEntry(newEntry);
         return {
@@ -184,21 +182,6 @@ export async function joinWaitingList(
  * Fetch total waiting list count
  */
 export async function getWaitingListCount(): Promise<number> {
-  let count = getLocalWaitingList().length;
-
-  if (supabase) {
-    try {
-      const { count: dbCount, error } = await supabase
-        .from('waiting_list')
-        .select('*', { count: 'exact', head: true });
-
-      if (!error && typeof dbCount === 'number') {
-        return Math.max(dbCount, count);
-      }
-    } catch {
-      // ignore
-    }
-  }
-
+  const count = getLocalWaitingList().length;
   return count;
 }
