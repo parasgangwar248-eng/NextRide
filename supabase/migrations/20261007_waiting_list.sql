@@ -1,7 +1,7 @@
 -- ==============================================================================
 -- NextRide Waiting List Migration
 -- Table: public.waiting_list
--- Purpose: Pre-launch waiting list collection for Bypass -> Bhojipura pilot route
+-- Purpose: Pre-launch waiting list collection for Bareilly pilot routes (in validation)
 -- ==============================================================================
 
 -- 1. Create table
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS public.waiting_list (
     mobile_number TEXT NOT NULL UNIQUE,
     email TEXT,
     interest_type TEXT DEFAULT 'commuter' CHECK (interest_type IN ('commuter', 'driver', 'partner', 'other')),
-    route_interest TEXT DEFAULT 'Bypass → Bhojipura',
+    route_interest TEXT DEFAULT 'Bareilly Pilot Corridor (In Validation)',
     source TEXT DEFAULT 'web_coming_soon_landing',
     created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );

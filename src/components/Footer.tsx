@@ -33,7 +33,7 @@ export const Footer: React.FC<FooterProps> = ({
             </p>
             <div className="inline-flex items-center gap-1.5 text-xs text-slate-500 font-medium">
               <MapPin className="w-3.5 h-3.5 text-[#1258D4]" />
-              <span>Pilot Route: Bypass → Bhojipura • Bareilly, Uttar Pradesh</span>
+              <span>Scheduled Mobility Network • Bareilly, Uttar Pradesh</span>
             </div>
           </div>
 

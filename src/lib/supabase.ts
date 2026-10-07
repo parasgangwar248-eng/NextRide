@@ -115,7 +115,7 @@ export async function joinWaitingList(
   const newEntry: WaitingListEntry = {
     ...entryData,
     mobile_number: normalizedPhone,
-    route_interest: entryData.route_interest || 'Bypass → Bhojipura',
+    route_interest: entryData.route_interest || 'Bareilly Pilot Corridor (In Validation)',
     interest_type: entryData.interest_type || 'commuter',
     created_at: now,
     source: 'web_coming_soon_landing',

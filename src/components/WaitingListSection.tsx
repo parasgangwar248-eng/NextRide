@@ -10,6 +10,7 @@ import {
   Check,
   Sparkles,
   Users,
+  Compass,
 } from 'lucide-react';
 import {
   joinWaitingList,
@@ -26,6 +27,7 @@ export const WaitingListSection: React.FC<WaitingListSectionProps> = ({ onOpenIn
   const [fullName, setFullName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [email, setEmail] = useState('');
+  const [preferredRoute, setPreferredRoute] = useState('');
   const [interestType, setInterestType] = useState<'commuter' | 'driver' | 'partner'>('commuter');
 
   const [isLoading, setIsLoading] = useState(false);
@@ -77,13 +79,15 @@ export const WaitingListSection: React.FC<WaitingListSectionProps> = ({ onOpenIn
 
     setIsLoading(true);
 
+    const chosenRoute = preferredRoute.trim() || 'Bareilly Pilot Network (Route in validation)';
+
     try {
       const result = await joinWaitingList({
         full_name: trimmedName,
         mobile_number: normalizedDigits,
         email: trimmedEmail || undefined,
         interest_type: interestType,
-        route_interest: 'Bypass → Bhojipura',
+        route_interest: chosenRoute,
       });
 
       if (result.success) {
@@ -95,6 +99,7 @@ export const WaitingListSection: React.FC<WaitingListSectionProps> = ({ onOpenIn
             mobile_number: normalizedDigits,
             email: trimmedEmail,
             interest_type: interestType,
+            route_interest: chosenRoute,
           }
         );
 
@@ -112,7 +117,7 @@ export const WaitingListSection: React.FC<WaitingListSectionProps> = ({ onOpenIn
   };
 
   const handleShare = () => {
-    const shareText = `I just joined the NextRide waiting list for the Bypass → Bhojipura pilot in Bareilly! Check it out: ${window.location.origin}`;
+    const shareText = `I just joined the NextRide waiting list in Bareilly! Scheduled rides on time, every time: ${window.location.origin}`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(shareText);
       setCopiedLink(true);
@@ -126,6 +131,7 @@ export const WaitingListSection: React.FC<WaitingListSectionProps> = ({ onOpenIn
     setFullName('');
     setMobileNumber('');
     setEmail('');
+    setPreferredRoute('');
     setSubmittedEntry(null);
   };
 
@@ -274,10 +280,36 @@ export const WaitingListSection: React.FC<WaitingListSectionProps> = ({ onOpenIn
                   </div>
                 </div>
 
-                {/* Pilot Route Reminder */}
+                {/* Field 4: Preferred Route / Commute Area (Optional - Route Validation) */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label htmlFor="preferred-route" className="block text-sm font-semibold text-slate-900">
+                      Your Daily Route / Area <span className="text-slate-400 text-xs font-normal">(optional)</span>
+                    </label>
+                    <span className="text-[11px] text-[#1258D4] font-medium">Route Validation</span>
+                  </div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <Compass className="w-4 h-4" />
+                    </div>
+                    <input
+                      id="preferred-route"
+                      type="text"
+                      placeholder="e.g. Civil Lines, Station, University, Bypass..."
+                      value={preferredRoute}
+                      onChange={(e) => setPreferredRoute(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:border-[#1258D4] focus:ring-2 focus:ring-[#1258D4]/20 outline-hidden text-slate-900 text-sm placeholder:text-slate-400 transition-all"
+                    />
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1.5 leading-snug">
+                    We are currently validating initial routes across Bareilly — help us prioritize your corridor.
+                  </p>
+                </div>
+
+                {/* Route Validation Notice */}
                 <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between text-xs text-slate-600">
-                  <span className="font-medium">Selected Pilot Route:</span>
-                  <span className="font-bold text-[#1258D4]">Bypass → Bhojipura (Bareilly)</span>
+                  <span className="font-medium">Pilot Region:</span>
+                  <span className="font-bold text-[#1258D4]">Bareilly, Uttar Pradesh (Routes in validation)</span>
                 </div>
 
                 {/* Error Notice */}
@@ -354,7 +386,11 @@ export const WaitingListSection: React.FC<WaitingListSectionProps> = ({ onOpenIn
                       <span className="font-semibold text-slate-900">Mobile:</span> +91 {submittedEntry?.mobile_number}
                     </div>
                     <div>
-                      <span className="font-semibold text-slate-900">Route:</span> Bypass → Bhojipura (Bareilly)
+                      <span className="font-semibold text-slate-900">Region:</span> Bareilly, Uttar Pradesh
+                    </div>
+                    <div>
+                      <span className="font-semibold text-slate-900">Route Preference:</span>{' '}
+                      {submittedEntry?.route_interest || 'Bareilly Pilot Corridor (In Validation)'}
                     </div>
                     <div>
                       <span className="font-semibold text-slate-900">Type:</span>{' '}

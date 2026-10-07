@@ -2,7 +2,7 @@
 
 > **"Your next ride, on time, every time"**
 
-NextRide is building a reliable shared mobility network that makes everyday travel more predictable, accessible, and convenient. Launching first in Bareilly, Uttar Pradesh with the pilot route **Bypass → Bhojipura**.
+NextRide is building a reliable shared mobility network that makes everyday travel more predictable, accessible, and convenient. Launching first in Bareilly, Uttar Pradesh with initial pilot routes currently in active validation.
 
 ![NextRide Official Logo](./public/nextride-logo.jpg)
 
@@ -18,9 +18,8 @@ NextRide is building a reliable shared mobility network that makes everyday trav
   - Main Background: Crisp White `#FFFFFF` with Slate Neutrals (`#F8FAFC`, `#0F172A`)
   - Subtle dark navy accents and clean route gradients
   - Minimal, trustworthy, reliable, and futuristic aesthetic
-- **Pilot Route**:
-  - **Bypass → Bhojipura**
-  - **Bareilly, Uttar Pradesh, India**
+- **Pilot Region**:
+  - **Bareilly, Uttar Pradesh, India** (Initial routes currently in active validation)
 - **Founding Team**:
   - **Paras Gangwar** — Cofounder & CTO
   - **Saurabh** — Cofounder & CEO
@@ -34,8 +33,8 @@ NextRide is building a reliable shared mobility network that makes everyday trav
    - Small Badge: `COMING SOON • BAREILLY`
    - Headline: `Your next ride, on time, every time.`
    - Supporting text on building a predictable shared mobility network.
-   - Interactive route visual connecting **Bypass → Bhojipura** matching the NextRide logo.
-   - `Launching first in Bareilly, Uttar Pradesh`
+   - Interactive scheduled route corridor visual matching the NextRide logo.
+   - `Launching first in Bareilly, Uttar Pradesh` (Route validation in progress)
 3. **What is NextRide?**:
    - Heading: `Mobility should be predictable.`
    - 3 core concept cards:
@@ -46,10 +45,6 @@ NextRide is building a reliable shared mobility network that makes everyday trav
    - Heading: `Your ride, simplified.`
    - 4-step flow: *Choose your route* → *Select your stop and departure* → *Request your ride* → *Ride with confidence*.
    - Connected with subtle animated route lines.
-5. **First Pilot Route**:
-   - Section: `Our first route`
-   - Highlight: `Bypass → Bhojipura` (Bareilly, Uttar Pradesh).
-   - Minimalist route visualization.
 6. **Why NextRide**:
    - 4 premium feature cards: *Reliable*, *Accessible*, *Simple*, *Connected*.
 7. **Coming Soon / Waiting List**:
@@ -108,7 +103,7 @@ Waiting list submissions are automatically synchronized with Supabase.
        mobile_number TEXT NOT NULL UNIQUE,
        email TEXT,
        interest_type TEXT DEFAULT 'commuter',
-       route_interest TEXT DEFAULT 'Bypass → Bhojipura',
+       route_interest TEXT DEFAULT 'Bareilly Pilot Corridor (In Validation)',
        source TEXT DEFAULT 'web_coming_soon_landing',
        created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
    );

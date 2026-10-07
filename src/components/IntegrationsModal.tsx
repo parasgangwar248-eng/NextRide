@@ -56,7 +56,7 @@ export const IntegrationsModal: React.FC<IntegrationsModalProps> = ({ isOpen, on
       `"${e.mobile_number}"`,
       `"${e.email || ''}"`,
       `"${e.interest_type || 'commuter'}"`,
-      `"${e.route_interest || 'Bypass -> Bhojipura'}"`,
+      `"${e.route_interest || 'Bareilly Pilot Corridor (In Validation)'}"`,
       `"${e.created_at || ''}"`,
     ]);
     const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS public.waiting_list (
     mobile_number TEXT NOT NULL UNIQUE,
     email TEXT,
     interest_type TEXT DEFAULT 'commuter',
-    route_interest TEXT DEFAULT 'Bypass → Bhojipura',
+    route_interest TEXT DEFAULT 'Bareilly Pilot Corridor (In Validation)',
     source TEXT DEFAULT 'web_coming_soon_landing',
     created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );

@@ -56,16 +56,17 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onJoinClick, onExplore
             </button>
           </div>
 
-          {/* Subtle Visual Representation of Route: Bypass → Bhojipura */}
+          {/* Subtle Visual Representation of Scheduled Route Network */}
           <div className="w-full max-w-2xl">
             <div className="relative rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/60 p-6 sm:p-8 shadow-xs">
               <div className="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider mb-6">
                 <span className="flex items-center gap-1.5 text-slate-500">
                   <Navigation className="w-3.5 h-3.5 text-[#1258D4]" />
-                  Pilot Route Corridor
+                  Scheduled Mobility Model
                 </span>
-                <span className="text-[#1258D4] font-medium normal-case tracking-normal text-xs bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
-                  Scheduled Mobility
+                <span className="text-[#1258D4] font-medium normal-case tracking-normal text-xs bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-100 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#1258D4] animate-pulse" />
+                  Route Validation In Progress
                 </span>
               </div>
 
@@ -73,15 +74,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onJoinClick, onExplore
               <div className="relative py-4">
                 {/* SVG Route Line connecting the two nodes */}
                 <div className="relative flex items-center justify-between">
-                  {/* Left Anchor Node: Bypass */}
+                  {/* Left Anchor Node: Pickup Point */}
                   <div className="flex flex-col items-center text-center z-10">
                     <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#1258D4] shadow-md shadow-blue-500/10 flex items-center justify-center mb-2">
                       <div className="w-4 h-4 rounded-full bg-[#1258D4] flex items-center justify-center">
                         <div className="w-1.5 h-1.5 rounded-full bg-white" />
                       </div>
                     </div>
-                    <span className="text-sm font-bold text-slate-900">Bypass</span>
-                    <span className="text-[11px] text-slate-500">Bareilly</span>
+                    <span className="text-sm font-bold text-slate-900">Designated Stop</span>
+                    <span className="text-[11px] text-slate-500">Scheduled Departure</span>
                   </div>
 
                   {/* Connecting Animated Route Graphic */}
@@ -118,20 +119,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onJoinClick, onExplore
                     </svg>
 
                     {/* Subtle directional pulse icon in middle */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2.5 py-0.5 rounded-full bg-white border border-blue-200 shadow-xs text-[11px] font-semibold text-[#1258D4] flex items-center gap-1">
-                      <span>Bypass</span>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-3 py-0.5 rounded-full bg-white border border-blue-200 shadow-xs text-[11px] font-semibold text-[#1258D4] flex items-center gap-1.5 whitespace-nowrap">
+                      <span>Fixed Corridor</span>
                       <ArrowRight className="w-3 h-3 text-[#1258D4]" />
-                      <span>Bhojipura</span>
+                      <span>On-Time Arrival</span>
                     </div>
                   </div>
 
-                  {/* Right Anchor Node: Bhojipura */}
+                  {/* Right Anchor Node: Dropoff Point */}
                   <div className="flex flex-col items-center text-center z-10">
                     <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#1258D4] shadow-md shadow-blue-500/10 flex items-center justify-center mb-2">
                       <MapPin className="w-5 h-5 text-[#1258D4]" />
                     </div>
-                    <span className="text-sm font-bold text-slate-900">Bhojipura</span>
-                    <span className="text-[11px] text-slate-500">Bareilly</span>
+                    <span className="text-sm font-bold text-slate-900">Destination</span>
+                    <span className="text-[11px] text-slate-500">Predictable Drop-off</span>
                   </div>
                 </div>
               </div>
@@ -145,7 +146,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onJoinClick, onExplore
                   </span>
                 </div>
                 <div className="text-slate-400 italic">
-                  Pre-launch phase • Operations in active preparation
+                  Pre-launch phase • Initial pilot corridors currently in validation
                 </div>
               </div>
             </div>

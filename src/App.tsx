@@ -3,7 +3,6 @@ import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { WhatIsNextRide } from './components/WhatIsNextRide';
 import { HowItWorks } from './components/HowItWorks';
-import { FirstPilot } from './components/FirstPilot';
 import { WhyNextRide } from './components/WhyNextRide';
 import { WaitingListSection } from './components/WaitingListSection';
 import { FounderSection } from './components/FounderSection';
@@ -55,22 +54,19 @@ export default function App() {
         {/* 4. How It Works */}
         <HowItWorks />
 
-        {/* 5. First Pilot: Bypass → Bhojipura */}
-        <FirstPilot />
-
-        {/* 6. Why NextRide */}
+        {/* 5. Why NextRide */}
         <WhyNextRide />
 
-        {/* 7. Coming Soon / Waiting List */}
+        {/* 6. Coming Soon / Waiting List */}
         <WaitingListSection
           onOpenIntegrations={() => setIsIntegrationsOpen(true)}
         />
 
-        {/* 8. Built by the Founders */}
+        {/* 7. Built by the Founders */}
         <FounderSection />
       </main>
 
-      {/* 9. Footer */}
+      {/* 8. Footer */}
       <Footer
         onOpenPrivacy={() => setLegalModalType('privacy')}
         onOpenTerms={() => setLegalModalType('terms')}
