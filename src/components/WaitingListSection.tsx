@@ -31,6 +31,8 @@ export const WaitingListSection: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [isDuplicate, setIsDuplicate] = useState(false);
   const [submittedEntry, setSubmittedEntry] = useState<WaitingListEntry | null>(null);
+  const [storageType, setStorageType] = useState<'supabase' | 'local_fallback'>('supabase');
+  const [errorDetail, setErrorDetail] = useState<string | undefined>();
   const [waitingCount, setWaitingCount] = useState<number>(142);
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -89,6 +91,8 @@ export const WaitingListSection: React.FC = () => {
       if (result.success) {
         setIsSuccess(true);
         setIsDuplicate(Boolean(result.isDuplicate));
+        setStorageType(result.storageType);
+        setErrorDetail(result.errorDetail);
         setSubmittedEntry(
           result.entry || {
             full_name: trimmedName,
@@ -383,6 +387,28 @@ export const WaitingListSection: React.FC = () => {
                       <span className="font-semibold text-slate-900">Type:</span>{' '}
                       {submittedEntry?.interest_type === 'driver' ? 'Driver / Vehicle Partner' : 'Passenger Commuter'}
                     </div>
+
+                    {storageType === 'supabase' ? (
+                      <div className="pt-2.5 mt-2 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                        <span className="text-slate-500 font-medium">Database:</span>
+                        <span className="inline-flex items-center gap-1.5 text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Saved to Supabase
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="pt-2.5 mt-2 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                        <span className="text-slate-500 font-medium">Database:</span>
+                        <span className="inline-flex items-center gap-1.5 text-amber-700 font-semibold bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                          {errorDetail === 'SUPABASE_NOT_CONFIGURED'
+                            ? 'Saved locally (Supabase keys pending)'
+                            : errorDetail
+                            ? `Local queue: ${errorDetail}`
+                            : 'Saved locally (Supabase pending)'}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 

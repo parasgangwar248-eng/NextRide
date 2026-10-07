@@ -1,8 +1,8 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Environment variable credentials configured securely in Vercel / .env
-const envUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const envUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
+const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
 
 const LOCAL_STORAGE_WAITING_LIST_KEY = 'nextride_local_waiting_list';
 
@@ -14,8 +14,21 @@ export const isSupabaseConfigured = Boolean(
   !envUrl.includes('your-project')
 );
 
+if (isSupabaseConfigured) {
+  console.log('[NextRide] Supabase connected to:', envUrl);
+} else {
+  console.warn(
+    '[NextRide] Supabase is NOT configured. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file or Vercel Environment Variables.'
+  );
+}
+
 export const supabase: SupabaseClient | null = isSupabaseConfigured
-  ? createClient(envUrl, envKey)
+  ? createClient(envUrl, envKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    })
   : null;
 
 export interface WaitingListEntry {
@@ -66,11 +79,12 @@ export interface WaitingListResult {
   message?: string;
   entry?: WaitingListEntry;
   storageType: 'supabase' | 'local_fallback';
+  errorDetail?: string;
 }
 
 /**
  * Join NextRide Waiting List
- * Validates, checks duplicates, and inserts into Supabase or securely caches locally.
+ * Validates, checks duplicates, and inserts directly into Supabase.
  */
 export async function joinWaitingList(
   entryData: Omit<WaitingListEntry, 'id' | 'created_at'>
@@ -103,10 +117,13 @@ export async function joinWaitingList(
     };
   }
 
-  // 2. If Supabase is connected, try Supabase insert
+  // 2. If Supabase is connected, insert into Supabase
   if (supabase) {
     try {
-      const { data, error: insertError } = await supabase
+      console.log('[NextRide] Submitting to Supabase waiting_list table...', newEntry);
+
+      // Perform direct insert WITHOUT .select() so no SELECT policy is required
+      const { error: insertError } = await supabase
         .from('waiting_list')
         .insert([
           {
@@ -117,12 +134,12 @@ export async function joinWaitingList(
             route_interest: newEntry.route_interest,
             source: 'web_coming_soon_landing',
           },
-        ])
-        .select()
-        .single();
+        ]);
 
       if (insertError) {
-        // PostgreSQL unique violation error code 23505
+        console.error('[NextRide] Supabase insert error:', insertError);
+
+        // PostgreSQL unique violation error code 23505 (phone already exists)
         if (
           insertError.code === '23505' ||
           insertError.message?.toLowerCase().includes('unique') ||
@@ -138,43 +155,48 @@ export async function joinWaitingList(
           };
         }
 
-        console.warn('Supabase insert issue, caching locally:', insertError.message);
+        // Table doesn't exist or RLS issue
         saveLocalEntry(newEntry);
         return {
           success: true,
-          message: 'Saved to waiting list queue.',
+          message: 'Saved to local queue. Note: Supabase reported: ' + insertError.message,
           entry: newEntry,
           storageType: 'local_fallback',
+          errorDetail: insertError.message,
         };
       }
 
-      saveLocalEntry(data as WaitingListEntry);
+      console.log('[NextRide] Successfully inserted row into Supabase waiting_list!');
+      saveLocalEntry(newEntry);
 
       return {
         success: true,
         isDuplicate: false,
-        entry: data as WaitingListEntry,
+        entry: newEntry,
         storageType: 'supabase',
       };
     } catch (err: any) {
-      console.warn('Supabase request failed, falling back to local storage:', err);
+      console.error('[NextRide] Unexpected Supabase network exception:', err);
       saveLocalEntry(newEntry);
       return {
         success: true,
-        message: 'Saved to waiting list queue.',
+        message: 'Saved to local queue.',
         entry: newEntry,
         storageType: 'local_fallback',
+        errorDetail: err?.message,
       };
     }
   }
 
-  // 3. Fallback: Local storage queue
+  // 3. Fallback: Local storage queue (when Supabase env variables are not yet provided)
+  console.warn('[NextRide] No Supabase client initialized. Saving to localStorage queue.');
   saveLocalEntry(newEntry);
   return {
     success: true,
     isDuplicate: false,
     entry: newEntry,
     storageType: 'local_fallback',
+    errorDetail: 'SUPABASE_NOT_CONFIGURED',
   };
 }
 

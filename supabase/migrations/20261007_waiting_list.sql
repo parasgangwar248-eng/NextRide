@@ -1,10 +1,7 @@
 -- ==============================================================================
 -- NextRide Waiting List Migration
 -- Table: public.waiting_list
--- Purpose: Pre-launch waiting list collection for Bareilly pilot routes (in validation)
--- Security: Row Level Security (RLS) enabled.
---           Only INSERT is allowed for public visitors.
---           Nobody from the public can query or view other people's submissions.
+-- Purpose: Pre-launch waiting list collection for Bareilly pilot routes
 -- ==============================================================================
 
 -- 1. Create table
@@ -26,8 +23,7 @@ CREATE INDEX IF NOT EXISTS idx_waiting_list_created_at ON public.waiting_list(cr
 -- 3. Enable Row Level Security (RLS)
 ALTER TABLE public.waiting_list ENABLE ROW LEVEL SECURITY;
 
--- 4. Secure Policies:
--- Allow anyone to submit to the waiting list
+-- 4. Allow public anonymous inserts
 DROP POLICY IF EXISTS "Allow public inserts into waiting_list" ON public.waiting_list;
 CREATE POLICY "Allow public inserts into waiting_list"
     ON public.waiting_list
@@ -35,4 +31,10 @@ CREATE POLICY "Allow public inserts into waiting_list"
     TO anon, authenticated
     WITH CHECK (true);
 
--- (Notice: No SELECT policy is granted to anon, ensuring maximum user privacy)
+-- 5. Allow public reading
+DROP POLICY IF EXISTS "Allow public read on waiting_list" ON public.waiting_list;
+CREATE POLICY "Allow public read on waiting_list"
+    ON public.waiting_list
+    FOR SELECT
+    TO anon, authenticated
+    USING (true);
