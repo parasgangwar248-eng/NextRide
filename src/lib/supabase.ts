@@ -1,56 +1,22 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Environment variable credentials or locally stored credentials
+// Environment variable credentials configured securely in Vercel / .env
 const envUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-const LOCAL_STORAGE_CRED_KEY = 'nextride_custom_supabase_creds';
 const LOCAL_STORAGE_WAITING_LIST_KEY = 'nextride_local_waiting_list';
 
-function getSavedCreds(): { url: string; anonKey: string } {
-  try {
-    const saved = localStorage.getItem(LOCAL_STORAGE_CRED_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.url && parsed.anonKey) {
-        return parsed;
-      }
-    }
-  } catch {
-    // ignore
-  }
-  return { url: envUrl, anonKey: envKey };
-}
-
-const currentCreds = getSavedCreds();
-
 export const isSupabaseConfigured = Boolean(
-  currentCreds.url &&
-  currentCreds.anonKey &&
-  currentCreds.url.startsWith('https://') &&
-  !currentCreds.url.includes('your-project-id') &&
-  !currentCreds.url.includes('your-project')
+  envUrl &&
+  envKey &&
+  envUrl.startsWith('https://') &&
+  !envUrl.includes('your-project-id') &&
+  !envUrl.includes('your-project')
 );
 
-export let supabase: SupabaseClient | null = isSupabaseConfigured
-  ? createClient(currentCreds.url, currentCreds.anonKey)
+export const supabase: SupabaseClient | null = isSupabaseConfigured
+  ? createClient(envUrl, envKey)
   : null;
-
-export function configureSupabase(url: string, anonKey: string) {
-  try {
-    localStorage.setItem(LOCAL_STORAGE_CRED_KEY, JSON.stringify({ url, anonKey }));
-    supabase = createClient(url, anonKey);
-    return true;
-  } catch (err) {
-    console.error('Failed to configure Supabase:', err);
-    return false;
-  }
-}
-
-export function resetSupabaseConfig() {
-  localStorage.removeItem(LOCAL_STORAGE_CRED_KEY);
-  supabase = envUrl && envKey ? createClient(envUrl, envKey) : null;
-}
 
 export interface WaitingListEntry {
   id?: string;
@@ -75,7 +41,7 @@ export function normalizePhoneNumber(phone: string): string {
   return digits;
 }
 
-// Get locally saved entries (fallback / offline mode)
+// Get locally saved entries (fallback mode if backend is unreachable)
 export function getLocalWaitingList(): WaitingListEntry[] {
   try {
     const data = localStorage.getItem(LOCAL_STORAGE_WAITING_LIST_KEY);
@@ -104,7 +70,7 @@ export interface WaitingListResult {
 
 /**
  * Join NextRide Waiting List
- * Validates, checks duplicates, inserts into Supabase or gracefully stores locally.
+ * Validates, checks duplicates, and inserts into Supabase or securely caches locally.
  */
 export async function joinWaitingList(
   entryData: Omit<WaitingListEntry, 'id' | 'created_at'>
@@ -174,17 +140,16 @@ export async function joinWaitingList(
         .single();
 
       if (insertError) {
-        console.warn('Supabase insert issue, saving locally:', insertError.message);
+        console.warn('Supabase insert issue, caching locally:', insertError.message);
         saveLocalEntry(newEntry);
         return {
           success: true,
-          message: 'Saved to local waiting list queue. Ready for cloud sync.',
+          message: 'Saved to waiting list queue.',
           entry: newEntry,
           storageType: 'local_fallback',
         };
       }
 
-      // Also cache locally for seamless UX
       saveLocalEntry(data as WaitingListEntry);
 
       return {

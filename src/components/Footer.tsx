@@ -5,13 +5,11 @@ import { MapPin } from 'lucide-react';
 interface FooterProps {
   onOpenPrivacy: () => void;
   onOpenTerms: () => void;
-  onOpenIntegrations?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   onOpenPrivacy,
   onOpenTerms,
-  onOpenIntegrations,
 }) => {
   const scrollTo = (id: string) => {
     const el = document.querySelector(id);
@@ -72,20 +70,36 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
         </div>
 
-        {/* Bottom Copyright & Integrations Info */}
+        {/* Bottom Copyright & Official Instagram Handle */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <p>© 2026 NextRide. All rights reserved.</p>
 
-          <div className="flex items-center gap-4">
-            <span className="text-slate-400">Bareilly Mobility Pilot</span>
-            {onOpenIntegrations && (
-              <button
-                onClick={onOpenIntegrations}
-                className="text-[#1258D4] hover:underline font-semibold cursor-pointer"
+          <div className="flex items-center gap-5">
+            {/* Official Instagram Handle */}
+            <a
+              href="https://instagram.com/nextride.one"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 hover:text-[#1258D4] font-semibold transition-all group"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-4 h-4 text-slate-500 group-hover:text-[#E1306C] transition-colors"
               >
-                GitHub • Vercel • Supabase Setup
-              </button>
-            )}
+                <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+              </svg>
+              <span>@nextride.one</span>
+            </a>
+
+            <span className="text-slate-400 hidden sm:inline">•</span>
+            <span className="text-slate-400">Bareilly Mobility Pilot</span>
           </div>
         </div>
       </div>

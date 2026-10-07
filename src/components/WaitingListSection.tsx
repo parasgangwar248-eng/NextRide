@@ -19,11 +19,7 @@ import {
 } from '../lib/supabase';
 import type { WaitingListEntry } from '../lib/supabase';
 
-interface WaitingListSectionProps {
-  onOpenIntegrations?: () => void;
-}
-
-export const WaitingListSection: React.FC<WaitingListSectionProps> = ({ onOpenIntegrations }) => {
+export const WaitingListSection: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [email, setEmail] = useState('');
@@ -339,18 +335,9 @@ export const WaitingListSection: React.FC<WaitingListSectionProps> = ({ onOpenIn
                   )}
                 </button>
 
-                <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-                  <span>No spam. Only launch updates for Bareilly.</span>
-                  {onOpenIntegrations && (
-                    <button
-                      type="button"
-                      onClick={onOpenIntegrations}
-                      className="text-[#1258D4] hover:underline font-medium cursor-pointer"
-                    >
-                      Storage & Cloud Status
-                    </button>
-                  )}
-                </div>
+                <p className="text-center text-xs text-slate-500 pt-1">
+                  No spam. Only launch updates for Bareilly.
+                </p>
               </form>
             ) : (
               /* Polished Success State (as specified in prompt) */

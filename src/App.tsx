@@ -8,11 +8,9 @@ import { WaitingListSection } from './components/WaitingListSection';
 import { FounderSection } from './components/FounderSection';
 import { Footer } from './components/Footer';
 import { LegalModal } from './components/LegalModals';
-import { IntegrationsModal } from './components/IntegrationsModal';
 
 export default function App() {
   const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | null>(null);
-  const [isIntegrationsOpen, setIsIntegrationsOpen] = useState(false);
 
   const scrollToWaitingList = () => {
     const el = document.getElementById('waiting-list');
@@ -35,10 +33,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-[#1258D4] selection:text-white">
       {/* 1. Navbar */}
-      <Navbar
-        onJoinClick={scrollToWaitingList}
-        onOpenIntegrations={() => setIsIntegrationsOpen(true)}
-      />
+      <Navbar onJoinClick={scrollToWaitingList} />
 
       {/* Main Content Area */}
       <main className="flex-1">
@@ -58,9 +53,7 @@ export default function App() {
         <WhyNextRide />
 
         {/* 6. Coming Soon / Waiting List */}
-        <WaitingListSection
-          onOpenIntegrations={() => setIsIntegrationsOpen(true)}
-        />
+        <WaitingListSection />
 
         {/* 7. Built by the Founders */}
         <FounderSection />
@@ -70,19 +63,12 @@ export default function App() {
       <Footer
         onOpenPrivacy={() => setLegalModalType('privacy')}
         onOpenTerms={() => setLegalModalType('terms')}
-        onOpenIntegrations={() => setIsIntegrationsOpen(true)}
       />
 
       {/* Legal Modals */}
       <LegalModal
         type={legalModalType}
         onClose={() => setLegalModalType(null)}
-      />
-
-      {/* Cloud & Deployment Manager Modal (GitHub, Vercel, Supabase) */}
-      <IntegrationsModal
-        isOpen={isIntegrationsOpen}
-        onClose={() => setIsIntegrationsOpen(false)}
       />
     </div>
   );
