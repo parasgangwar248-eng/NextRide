@@ -4,35 +4,21 @@
   --color-brand: #1258D4;
   --color-brand-hover: #0D4BB8;
   --color-brand-active: #0A3C94;
-  --color-brand-dark: #0D40AB;
-  --color-brand-light: #256BF5;
+  --color-brand-dark: #0A2F7D;
+  --color-brand-light: #2A72F8;
   --color-brand-surface: #F0F5FF;
   --color-brand-border: #C7DCFE;
 
-  --color-surface: #FFFFFF;
-  --color-background: #F8FAFC;
-  --color-card-hover: #F1F5F9;
+  --color-navy: #0A1128;
+  --color-navy-muted: #1E293B;
 
-  --color-text-primary: #0F172A;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94A3B8;
-
-  --color-border-subtle: #E2E8F0;
-  --color-border-strong: #CBD5E1;
-
-  --color-status-success: #16A34A;
-  --color-status-warning: #D97706;
-  --color-status-error: #DC2626;
-  --color-status-info: #1258D4;
-
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans Devanagari', sans-serif;
-  --font-hindi: 'Noto Sans Devanagari', 'Inter', system-ui, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 :root {
   font-family: var(--font-sans);
-  color: var(--color-text-primary);
-  background-color: var(--color-background);
+  color: #0F172A;
+  background-color: #FFFFFF;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -40,15 +26,45 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #F8FAFC;
+  background-color: #FFFFFF;
   color: #0F172A;
   overflow-x: hidden;
 }
 
-/* Custom scrollbar for mobile / desktop */
+/* Subtle dash animation for route lines */
+@keyframes flowRoute {
+  0% {
+    stroke-dashoffset: 40;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-route-flow {
+  stroke-dasharray: 8 6;
+  animation: flowRoute 2.4s linear infinite;
+}
+
+/* Soft pulse glow */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 4s ease-in-out infinite;
+}
+
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
-  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: #F8FAFC;

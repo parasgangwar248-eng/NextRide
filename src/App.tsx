@@ -1,54 +1,93 @@
-import React, { useState } from 'react';
-import { LanguageProvider, useLanguage } from './context/LanguageContext';
-import { MobilityProvider } from './context/MobilityContext';
-import { Header } from './components/Header';
-import type { UserRole } from './components/Header';
-import { PassengerPortal } from './modules/passenger/PassengerPortal';
-import { DriverPortal } from './modules/driver/DriverPortal';
-import { AdminPortal } from './modules/admin/AdminPortal';
-import { BrandLogo } from './design-system/components/BrandLogo';
-
-const MainApp: React.FC = () => {
-  const [currentRole, setCurrentRole] = useState<UserRole>('passenger');
-  const { t } = useLanguage();
-
-  return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
-      <Header currentRole={currentRole} onRoleChange={setCurrentRole} />
-
-      <main className="flex-1">
-        {currentRole === 'passenger' && <PassengerPortal />}
-        {currentRole === 'driver' && <DriverPortal />}
-        {currentRole === 'admin' && <AdminPortal />}
-      </main>
-
-      {/* Standard NextRide Footer */}
-      <footer className="bg-white border-t border-[#E2E8F0] py-8 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex flex-col sm:flex-row items-center gap-3">
-            <BrandLogo size="sm" showTagline={false} />
-            <span className="text-slate-300 hidden sm:inline">|</span>
-            <span className="text-xs sm:text-sm text-slate-500 font-medium text-center sm:text-left">
-              "{t.brand.tagline}"
-            </span>
-          </div>
-
-          <div className="flex items-center gap-4 text-xs text-slate-500">
-            <span>© {new Date().getFullYear()} NextRide Network.</span>
-            <span>All rights reserved.</span>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-};
+import { useState } from 'react';
+import { Navbar } from './components/Navbar';
+import { HeroSection } from './components/HeroSection';
+import { WhatIsNextRide } from './components/WhatIsNextRide';
+import { HowItWorks } from './components/HowItWorks';
+import { FirstPilot } from './components/FirstPilot';
+import { WhyNextRide } from './components/WhyNextRide';
+import { WaitingListSection } from './components/WaitingListSection';
+import { FounderSection } from './components/FounderSection';
+import { Footer } from './components/Footer';
+import { LegalModal } from './components/LegalModals';
+import { IntegrationsModal } from './components/IntegrationsModal';
 
 export default function App() {
+  const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | null>(null);
+  const [isIntegrationsOpen, setIsIntegrationsOpen] = useState(false);
+
+  const scrollToWaitingList = () => {
+    const el = document.getElementById('waiting-list');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        const input = document.getElementById('full-name');
+        if (input) input.focus();
+      }, 500);
+    }
+  };
+
+  const scrollToWhatIsNextRide = () => {
+    const el = document.getElementById('what-is-nextride');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <LanguageProvider>
-      <MobilityProvider>
-        <MainApp />
-      </MobilityProvider>
-    </LanguageProvider>
+    <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-[#1258D4] selection:text-white">
+      {/* 1. Navbar */}
+      <Navbar
+        onJoinClick={scrollToWaitingList}
+        onOpenIntegrations={() => setIsIntegrationsOpen(true)}
+      />
+
+      {/* Main Content Area */}
+      <main className="flex-1">
+        {/* 2. Hero Section */}
+        <HeroSection
+          onJoinClick={scrollToWaitingList}
+          onExploreClick={scrollToWhatIsNextRide}
+        />
+
+        {/* 3. What is NextRide? */}
+        <WhatIsNextRide />
+
+        {/* 4. How It Works */}
+        <HowItWorks />
+
+        {/* 5. First Pilot: Bypass → Bhojipura */}
+        <FirstPilot />
+
+        {/* 6. Why NextRide */}
+        <WhyNextRide />
+
+        {/* 7. Coming Soon / Waiting List */}
+        <WaitingListSection
+          onOpenIntegrations={() => setIsIntegrationsOpen(true)}
+        />
+
+        {/* 8. Built by the Founders */}
+        <FounderSection />
+      </main>
+
+      {/* 9. Footer */}
+      <Footer
+        onOpenPrivacy={() => setLegalModalType('privacy')}
+        onOpenTerms={() => setLegalModalType('terms')}
+        onOpenIntegrations={() => setIsIntegrationsOpen(true)}
+      />
+
+      {/* Legal Modals */}
+      <LegalModal
+        type={legalModalType}
+        onClose={() => setLegalModalType(null)}
+      />
+
+      {/* Cloud & Deployment Manager Modal (GitHub, Vercel, Supabase) */}
+      <IntegrationsModal
+        isOpen={isIntegrationsOpen}
+        onClose={() => setIsIntegrationsOpen(false)}
+      />
+    </div>
   );
 }
