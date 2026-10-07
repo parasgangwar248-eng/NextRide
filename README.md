@@ -21,8 +21,8 @@ NextRide is building a reliable shared mobility network that makes everyday trav
 - **Pilot Region**:
   - **Bareilly, Uttar Pradesh, India** (Initial routes currently in active validation)
 - **Founding Team**:
-  - **Paras Gangwar** — Cofounder & CTO
-  - **Saurabh** — Cofounder & CEO
+  - **Paras Gangwar**
+  - **Saurabh**
 
 ---
 
